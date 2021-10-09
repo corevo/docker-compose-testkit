@@ -1,0 +1,8 @@
+{
+  "name": "@corevo/docker-compose-testkit",
+  "version": "0.0.0",
+  "main": "src/index.js",
+  "repository": "git@github.com:corevo/docker-compose-testkit.git",
+  "author": "Tomer <tomer@corevo.io>",
+  "license": "MIT"
+}
