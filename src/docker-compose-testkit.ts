@@ -1,7 +1,9 @@
 import retry from 'p-retry'
 import fetch from 'node-fetch'
 import execa from 'execa'
-import {getAddressForService as dctGetAddressForService} from '@corevo/docker-compose-mocha'
+// eslint-disable-next-line
+// @ts-ignore
+import {getAddressForService as dctGetAddressForService} from '@corevo/docker-compose-tool'
 
 const serviceAddressCache = new Map()
 

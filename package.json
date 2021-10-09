@@ -19,6 +19,8 @@
     "p-retry": "^4.6.1"
   },
   "devDependencies": {
+    "@corevo/docker-compose-tool": "^1.4.3",
+    "@types/node": "^16.10.3",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "eslint": "^7.32.0",
@@ -35,7 +37,7 @@
     "typescript": "^4.4.3"
   },
   "peerDependencies": {
-    "@corevo/docker-compose-mocha": "^1.4.0"
+    "@corevo/docker-compose-tool": "^1.4.3"
   },
   "packageManager": "yarn@3.0.2"
 }
