@@ -13,6 +13,10 @@
   "repository": "git@github.com:corevo/docker-compose-testkit.git",
   "author": "Tomer <tomer@corevo.io>",
   "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^3.0.0",
+    "p-retry": "^4.6.1"
+  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
@@ -28,6 +32,9 @@
     "eslint-plugin-testing-library": "^4.12.4",
     "prettier": "^2.4.1",
     "typescript": "^4.4.3"
+  },
+  "peerDependencies": {
+    "@corevo/docker-compose-mocha": "^1.4.0"
   },
   "packageManager": "yarn@3.0.2"
 }
