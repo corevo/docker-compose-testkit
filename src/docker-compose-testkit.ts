@@ -66,7 +66,7 @@ export async function getInternalIpForService(
     '-p',
     envName,
     '-f',
-    `"${composePath}"`,
+    composePath,
     'exec',
     '-T',
     serviceName,
