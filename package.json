@@ -1,8 +1,33 @@
 {
   "name": "@corevo/docker-compose-testkit",
   "version": "0.0.0",
-  "main": "src/index.js",
+  "main": "build/docker-compose-testkit.js",
+  "types": "build/docker-compose-testkit.d.ts",
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint --ext .ts src/"
+  },
   "repository": "git@github.com:corevo/docker-compose-testkit.git",
   "author": "Tomer <tomer@corevo.io>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-jest": "^24.5.2",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-no-only-tests": "^2.6.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-react": "^7.26.1",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "eslint-plugin-testing-library": "^4.12.4",
+    "prettier": "^2.4.1",
+    "typescript": "^4.4.3"
+  },
+  "packageManager": "yarn@3.0.2"
 }
