@@ -1,8 +1,11 @@
-import {execa} from 'execa'
+import {execa, ExecaReturnValue} from 'execa'
 import {cleanupContainersByEnvironmentName, cleanupOrphanEnvironments} from './cleanup.js'
 import {getProjectName} from './project-name.js'
 import {pullImagesFromComposeFile} from './pull-images.js'
 import {getAddressForService, getInternalIpForService} from './service-compose-network.js'
+import {listContainers, Container} from './list-containers.js'
+import {getLogsForService} from './container-logs.js'
+import {runService, waitForServiceToExit} from './container-lifecycle.js'
 
 type EnvFunc = () => string
 type Env = Record<string, string | EnvFunc>
@@ -19,10 +22,16 @@ export interface ComposeOptions {
 }
 
 export interface Compose {
+  projectName: string
+  pathToCompose: string
   setup: () => Promise<void>
   teardown: () => Promise<void>
   getAddressForService: (serviceName: string, exposedPort: number) => Promise<string>
   getInternalIpForService: (serviceName: string) => Promise<string>
+  listContainers: () => Promise<Container[]>
+  getLogsForService: (serviceName: string) => Promise<string>
+  waitForServiceToExit: (serviceName: string) => Promise<void>
+  runService: (serviceName: string, commandWithArgs: string[]) => Promise<ExecaReturnValue<string>>
 }
 
 export function compose(pathToCompose: string, options?: ComposeOptions): Compose {
@@ -78,16 +87,21 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
   }
 
   return {
+    projectName: project,
+    pathToCompose,
     setup,
     teardown,
-    getAddressForService: (serviceName, exposedPort) =>
-      getAddressForService(project, pathToCompose, serviceName, exposedPort),
-    getInternalIpForService: (serviceName) =>
-      getInternalIpForService(project, pathToCompose, serviceName),
+    getAddressForService: getAddressForService.bind(undefined, project, pathToCompose),
+    getInternalIpForService: getInternalIpForService.bind(undefined, project, pathToCompose),
+    listContainers: listContainers.bind(undefined, project, pathToCompose),
+    getLogsForService: getLogsForService.bind(undefined, project, pathToCompose),
+    waitForServiceToExit: waitForServiceToExit.bind(undefined, project, pathToCompose),
+    runService: runService.bind(undefined, project, pathToCompose),
   }
 }
 
 export default compose
+export type {Container, Publisher, State} from './list-containers.js'
 
 function replaceFunctionsWithTheirValues(env: Env): Record<string, string> {
   return Object.entries(env).reduce((finalEnv, [key, value]) => {
