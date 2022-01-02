@@ -1,49 +1,55 @@
 {
-  "name": "@corevo/docker-compose-testkit",
-  "version": "1.0.0",
-  "main": "build/docker-compose-testkit.js",
+  "name": "docker-compose-testkit",
+  "version": "2.0.0",
+  "type": "module",
+  "exports": "./build/docker-compose-testkit.js",
   "types": "build/docker-compose-testkit.d.ts",
   "files": [
     "build"
   ],
+  "engines": {
+    "node": ">=16"
+  },
   "scripts": {
-    "build": "tsc",
-    "test": "jest",
-    "lint": "eslint --ext .ts src/"
+    "clean": "npm run clean:ts && rm -rf build tsconfig.build.tsbuildinfo",
+    "clean:ts": "tsc --build --clean",
+    "build": "npm run clean && npm run build:ts",
+    "build:ts": "tsc -p tsconfig.build.json",
+    "test": "npm run lint && npm run test:jest",
+    "test:jest": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "lint": "npm run lint:scripts",
+    "lint:scripts": "eslint --ext .ts,.tsx --ext .js src/ __tests__/"
   },
   "repository": "git@github.com:corevo/docker-compose-testkit.git",
   "author": "Tomer <tomer@corevo.io>",
   "license": "MIT",
   "dependencies": {
-    "execa": "^5.1.1",
-    "node-fetch": "^2.6.5",
-    "p-retry": "^4.6.1"
+    "@types/js-yaml": "^4.0.5",
+    "execa": "^6.0.0",
+    "faker": "^5.5.3",
+    "got": "^12.0.0",
+    "js-yaml": "^4.1.0",
+    "p-retry": "^5.0.0"
   },
   "devDependencies": {
     "@corevo/docker-compose-tool": "^1.4.3",
     "@jest/globals": "^27.2.5",
+    "@types/faker": "^5.5.9",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.10.3",
-    "@types/node-fetch": "2.5.12",
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "@typescript-eslint/parser": "^4.33.0",
-    "eslint": "^7.32.0",
+    "@typescript-eslint/eslint-plugin": "^5.1.0",
+    "@typescript-eslint/parser": "^5.1.0",
+    "eslint": "^8.1.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-jest": "^24.5.2",
-    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-import-resolver-typescript": "^2.5.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-jest": "^25.2.2",
     "eslint-plugin-no-only-tests": "^2.6.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "eslint-plugin-react": "^7.26.1",
-    "eslint-plugin-react-hooks": "^4.2.0",
-    "eslint-plugin-testing-library": "^4.12.4",
     "jest": "^27.2.5",
     "prettier": "^2.4.1",
     "ts-jest": "^27.0.5",
     "typescript": "^4.4.3"
-  },
-  "peerDependencies": {
-    "@corevo/docker-compose-tool": "^1.4.3"
-  },
-  "packageManager": "yarn@3.0.2"
+  }
 }

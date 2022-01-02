@@ -1,11 +1,39 @@
 {
-  "env": {"commonjs": true, "es6": true, "node": true},
+  "env": {
+    "es6": true,
+    "node": true
+  },
   "parser": "@typescript-eslint/parser",
-  "parserOptions": {"ecmaVersion": 2021, "sourceType": "module"},
-  "extends": ["plugin:node/recommended", "plugin:@typescript-eslint/recommended", "prettier"],
-  "plugins": ["jest", "prettier", "no-only-tests"],
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module"
+  },
+  "extends": [
+    "plugin:import/recommended",
+    "plugin:import/typescript",
+    "plugin:node/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "plugins": [
+    "jest",
+    "prettier",
+    "no-only-tests"
+  ],
+  "settings": {
+    "import/parsers": {
+      "@typescript-eslint/parser": [
+        ".ts"
+      ]
+    },
+    "import/resolver": {
+      "typescript": {}
+    }
+  },
   "rules": {
-    "prettier/prettier": ["error"],
+    "prettier/prettier": [
+      "error"
+    ],
     "no-process-exit": "off",
     "no-const-assign": "error",
     "no-this-before-super": "error",
@@ -15,33 +43,81 @@
     "constructor-super": "warn",
     "valid-typeof": "warn",
     "no-debugger": "error",
-    "node/exports-style": ["error", "module.exports"],
+    "import/no-commonjs": "error",
+    "import/no-named-as-default": "off",
+    "import/no-named-as-default-member": "off",
+    "node/exports-style": "off",
     "node/shebang": [
       "error",
       {
         "convertPath": {
-          "src/**/*.js": ["src/(.+)$", "dist/$1"],
-          "src/**/*.ts": ["src/(.+)ts$", "dist/$1js"]
+          "src/**/*.js": [
+            "src/(.+)$",
+            "build/$1"
+          ],
+          "src/**/*.ts": [
+            "src/(.+)ts$",
+            "build/$1js"
+          ]
         }
       }
     ],
-    "node/no-missing-import": [
+    "node/no-missing-import": "off",
+    "node/file-extension-in-import": [
       "error",
-      {"tryExtensions": [".js", ".jsx", ".json", ".ts", ".tsx", ".node"]}
+      "always",
+      {
+        "tryExtensions": [
+          ".js"
+        ]
+      }
     ],
     "no-only-tests/no-only-tests": "error",
-    "@typescript-eslint/no-extra-semi": [0],
+    "@typescript-eslint/no-extra-semi": [
+      0
+    ],
     "@typescript-eslint/no-unused-vars": [
       "error",
-      {"varsIgnorePattern": "^_", "args": "all", "argsIgnorePattern": "^_"}
+      {
+        "varsIgnorePattern": "^_",
+        "args": "all",
+        "argsIgnorePattern": "^_"
+      }
     ],
-    "node/no-unsupported-features/es-syntax": ["error", {"ignores": ["modules"]}],
-    "@typescript-eslint/member-delimiter-style": ["error", {"multiline": {"delimiter": "none"}}],
-    "@typescript-eslint/no-use-before-define": ["off"],
-    "@typescript-eslint/no-var-requires": ["off"],
-    "@typescript-eslint/no-explicit-any": ["off"],
-    "@typescript-eslint/explicit-function-return-type": ["off"],
-    "@typescript-eslint/no-empty-interface": ["off"],
-    "@typescript-eslint/explicit-module-boundary-types": ["off"]
+    "node/no-unsupported-features/es-syntax": [
+      "error",
+      {
+        "ignores": [
+          "modules",
+          "dynamicImport"
+        ]
+      }
+    ],
+    "@typescript-eslint/member-delimiter-style": [
+      "error",
+      {
+        "multiline": {
+          "delimiter": "none"
+        }
+      }
+    ],
+    "@typescript-eslint/no-use-before-define": [
+      "off"
+    ],
+    "@typescript-eslint/no-var-requires": [
+      "off"
+    ],
+    "@typescript-eslint/no-explicit-any": [
+      "off"
+    ],
+    "@typescript-eslint/explicit-function-return-type": [
+      "off"
+    ],
+    "@typescript-eslint/no-empty-interface": [
+      "off"
+    ],
+    "@typescript-eslint/explicit-module-boundary-types": [
+      "off"
+    ]
   }
 }

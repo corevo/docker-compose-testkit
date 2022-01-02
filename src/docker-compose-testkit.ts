@@ -1,77 +1,102 @@
-import retry from 'p-retry'
-import fetch from 'node-fetch'
-import execa from 'execa'
-// eslint-disable-next-line
-// @ts-ignore
-import {getAddressForService as dctGetAddressForService} from '@corevo/docker-compose-tool'
+import {execa} from 'execa'
+import {cleanupContainersByEnvironmentName, cleanupOrphanEnvironments} from './cleanup.js'
+import {getProjectName} from './project-name.js'
+import {pullImagesFromComposeFile} from './pull-images.js'
+import {getAddressForService, getInternalIpForService} from './service-compose-network.js'
 
-const serviceAddressCache = new Map()
+type EnvFunc = () => string
+type Env = Record<string, string | EnvFunc>
 
-export async function getAddressForService(
-  envName: string,
-  composePath: string,
-  serviceName: string,
-  exposedPort: number,
-  {
-    customHealthCheck = undefined,
-    fiveHundedStatusIsOk = false,
-  }: {
-    customHealthCheck?: (address: string) => Promise<boolean>
-    fiveHundedStatusIsOk?: boolean
-  } = {},
-  maxRetries = 10,
-) {
-  const serviceAddressKey = JSON.stringify({envName, composePath, serviceName, exposedPort})
-  const possibleAddress = serviceAddressCache.get(serviceAddressKey)
-  if (possibleAddress) {
-    return possibleAddress
-  }
-
-  const address = await retry(
-    async () => {
-      const address = await dctGetAddressForService(envName, composePath, serviceName, exposedPort)
-
-      if (customHealthCheck) {
-        await customHealthCheck(address)
-        return address
-      }
-      const response = await fetch(`http://${address}/`)
-
-      if (response.status >= (fiveHundedStatusIsOk ? 600 : 500)) {
-        throw new Error(`Failed to access ${serviceName}. Got status ${response.status}`)
-      }
-      return address
-    },
-    {retries: maxRetries, maxTimeout: 1000},
-  )
-
-  /*
-  if (err) {
-    const log = await getLogsForService(envName, composePath, serviceName)
-    throw err
-  }
-  */
-
-  serviceAddressCache.set(serviceAddressKey, address)
-
-  return address
+export interface ComposeOptions {
+  servicesToStart: string[]
+  projectName: string
+  env: Env
+  orphanCleanup: boolean
+  cleanup: boolean
+  pullImages: boolean
+  forceKill: boolean
+  containerRetentionInMinutes: number
 }
 
-export async function getInternalIpForService(
-  envName: string,
-  composePath: string,
-  serviceName: string,
-) {
-  const {stdout} = await execa('docker-compose', [
-    '-p',
-    envName,
-    '-f',
-    composePath,
-    'exec',
-    '-T',
-    serviceName,
-    'hostname',
-    '-i',
-  ])
-  return stdout.replace('\n', '')
+export interface Compose {
+  setup: () => Promise<void>
+  teardown: () => Promise<void>
+  getAddressForService: (serviceName: string, exposedPort: number) => Promise<string>
+  getInternalIpForService: (serviceName: string) => Promise<string>
+}
+
+export function compose(pathToCompose: string, options?: ComposeOptions): Compose {
+  const {
+    servicesToStart,
+    projectName,
+    env,
+    orphanCleanup,
+    cleanup,
+    pullImages,
+    forceKill,
+    containerRetentionInMinutes,
+  } = {
+    servicesToStart: [],
+    env: {},
+    orphanCleanup: true,
+    cleanup: true,
+    pullImages: false,
+    forceKill: false,
+    containerRetentionInMinutes: 5,
+    ...options,
+  }
+  const {project, displayName} = getProjectName(projectName)
+
+  async function setup() {
+    if (pullImages) {
+      await pullImagesFromComposeFile(pathToCompose, servicesToStart)
+    }
+
+    if (orphanCleanup) {
+      await cleanupOrphanEnvironments(containerRetentionInMinutes)
+    }
+
+    const onlyTheseServicesMessage = servicesToStart
+      ? `, using only these services: ${servicesToStart.join(',')}`
+      : ''
+    const consoleMessage = `Docker: starting up runtime environment for this run (codenamed: ${displayName})${onlyTheseServicesMessage}... `
+    console.log(consoleMessage)
+
+    const finalEnv = replaceFunctionsWithTheirValues(env)
+
+    await execa(
+      'docker',
+      ['compose', '-p', project, '-f', pathToCompose, 'up', '-d', ...servicesToStart],
+      {env: {path: process.env.PATH, ...finalEnv}},
+    )
+  }
+
+  async function teardown() {
+    if (cleanup) {
+      await cleanupContainersByEnvironmentName(project, pathToCompose, displayName, forceKill)
+    }
+  }
+
+  return {
+    setup,
+    teardown,
+    getAddressForService: (serviceName, exposedPort) =>
+      getAddressForService(project, pathToCompose, serviceName, exposedPort),
+    getInternalIpForService: (serviceName) =>
+      getInternalIpForService(project, pathToCompose, serviceName),
+  }
+}
+
+export default compose
+
+function replaceFunctionsWithTheirValues(env: Env): Record<string, string> {
+  return Object.entries(env).reduce((finalEnv, [key, value]) => {
+    if (typeof value === 'function') {
+      env[key] = value()
+    } else {
+      env[key] = value
+    }
+
+    return finalEnv
+  }, {})
 }

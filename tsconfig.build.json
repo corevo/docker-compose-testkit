@@ -2,11 +2,7 @@
   "compilerOptions": {
     "target": "es2021",
     "module": "es2022",
-    /* this is a remporary fix for https://github.com/facebook/jest/issues/12098
-     * if you're getting any weird type errors, you should override this param in your tsconfig.build.json
-     * while keeping node as one of the types.
-     */
-    "lib": ["dom", "es2021"],
+    "lib": ["es2021"],
     "declaration": true,
     "composite": true,
     "declarationMap": true,
@@ -26,8 +22,8 @@
     /* This needs to be false so our types are possible to consume without setting this */
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "rootDir": ".",
+    "rootDir": "src",
     "outDir": "build"
   },
-  "include": ["src/**/*", "test/**/*"]
+  "include": ["src/**/*"]
 }
