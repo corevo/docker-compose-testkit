@@ -13,6 +13,7 @@ import {
   runService,
   waitForServiceToExit,
 } from './container-lifecycle.js'
+import debug from './debug.js'
 
 type EnvFunc = () => string
 type Env = Record<string, string | EnvFunc>
@@ -77,11 +78,11 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
       await cleanupOrphanEnvironments(containerRetentionInMinutes)
     }
 
-    const onlyTheseServicesMessage = servicesToStart
+    const onlyTheseServicesMessage = servicesToStart.length
       ? `, using only these services: ${servicesToStart.join(',')}`
       : ''
-    const consoleMessage = `Docker: starting up runtime environment for this run (codenamed: ${displayName})${onlyTheseServicesMessage}... `
-    console.log(consoleMessage)
+    const consoleMessage = `starting up runtime environment for this run (codenamed: ${displayName})${onlyTheseServicesMessage}... `
+    debug(consoleMessage)
 
     const finalEnv = replaceFunctionsWithTheirValues(env)
 

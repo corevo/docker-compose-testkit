@@ -2,6 +2,7 @@ import retry, {AbortError} from 'p-retry'
 import {execa} from 'execa'
 import {listContainers} from './list-containers.js'
 import {getLogsForService} from './container-logs.js'
+import debug from './debug.js'
 
 export async function startService(
   projectName: string,
@@ -62,7 +63,7 @@ export async function waitForServiceToExit(
         const errorMessage = `Service exited with exit code ${
           container.ExitCode
         }:\n${await getLogsForService(projectName, pathToCompose, serviceName)}`
-        console.error(errorMessage)
+        debug(errorMessage)
         throw new AbortError(errorMessage)
       } else {
         return

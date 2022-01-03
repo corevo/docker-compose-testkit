@@ -1,3 +1,4 @@
+import capitalize from 'lodash.capitalize'
 import {random} from './chance.js'
 
 export function getProjectName(projectName?: string, minutesBackward = 0) {
@@ -5,7 +6,10 @@ export function getProjectName(projectName?: string, minutesBackward = 0) {
     const name = projectName.split('__')[1]
 
     return {
-      displayName: name.replace('_', ' '),
+      displayName: name
+        .split('_')
+        .map((s) => capitalize(s))
+        .join(' '),
       project: projectName,
     }
   }
@@ -14,7 +18,7 @@ export function getProjectName(projectName?: string, minutesBackward = 0) {
   const noun = random('animals')
 
   return {
-    displayName: `${adjective} ${noun}`,
+    displayName: `${capitalize(adjective)} ${capitalize(noun)}`,
     project: `testkit__${adjective}_${noun}__${
       Math.floor(Date.now() / 1000) - 60 * minutesBackward
     }`,
