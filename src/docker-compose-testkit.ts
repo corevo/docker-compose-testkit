@@ -3,9 +3,16 @@ import {cleanupContainersByEnvironmentName, cleanupOrphanEnvironments} from './c
 import {getProjectName} from './project-name.js'
 import {pullImagesFromComposeFile} from './pull-images.js'
 import {getAddressForService, getInternalIpForService} from './service-compose-network.js'
-import {listContainers, Container} from './list-containers.js'
+import {listContainers, containerExists, Container} from './list-containers.js'
 import {getLogsForService} from './container-logs.js'
-import {runService, waitForServiceToExit} from './container-lifecycle.js'
+import {
+  startService,
+  stopService,
+  pauseService,
+  unpauseService,
+  runService,
+  waitForServiceToExit,
+} from './container-lifecycle.js'
 
 type EnvFunc = () => string
 type Env = Record<string, string | EnvFunc>
@@ -29,9 +36,14 @@ export interface Compose {
   getAddressForService: (serviceName: string, exposedPort: number) => Promise<string>
   getInternalIpForService: (serviceName: string) => Promise<string>
   listContainers: () => Promise<Container[]>
+  containerExists: (serviceName: string) => Promise<boolean>
   getLogsForService: (serviceName: string) => Promise<string>
   waitForServiceToExit: (serviceName: string) => Promise<void>
   runService: (serviceName: string, commandWithArgs: string[]) => Promise<ExecaReturnValue<string>>
+  startService: (serviceName: string) => Promise<void>
+  stopService: (serviceName: string) => Promise<void>
+  pauseService: (serviceName: string) => Promise<void>
+  unpauseService: (serviceName: string) => Promise<void>
 }
 
 export function compose(pathToCompose: string, options?: ComposeOptions): Compose {
@@ -94,9 +106,14 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     getAddressForService: getAddressForService.bind(undefined, project, pathToCompose),
     getInternalIpForService: getInternalIpForService.bind(undefined, project, pathToCompose),
     listContainers: listContainers.bind(undefined, project, pathToCompose),
+    containerExists: containerExists.bind(undefined, project, pathToCompose),
     getLogsForService: getLogsForService.bind(undefined, project, pathToCompose),
     waitForServiceToExit: waitForServiceToExit.bind(undefined, project, pathToCompose),
     runService: runService.bind(undefined, project, pathToCompose),
+    startService: startService.bind(undefined, project, pathToCompose),
+    stopService: stopService.bind(undefined, project, pathToCompose),
+    pauseService: pauseService.bind(undefined, project, pathToCompose),
+    unpauseService: unpauseService.bind(undefined, project, pathToCompose),
   }
 }
 

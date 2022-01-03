@@ -1,4 +1,4 @@
-import faker from 'faker'
+import {random} from './chance.js'
 
 export function getProjectName(projectName?: string, minutesBackward = 0) {
   if (projectName) {
@@ -10,8 +10,8 @@ export function getProjectName(projectName?: string, minutesBackward = 0) {
     }
   }
 
-  const adjective = 'adjective'
-  const noun = faker.animal.type()
+  const adjective = random('adjective')
+  const noun = random('animals')
 
   return {
     displayName: `${adjective} ${noun}`,

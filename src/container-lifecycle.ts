@@ -3,6 +3,47 @@ import {execa} from 'execa'
 import {listContainers} from './list-containers.js'
 import {getLogsForService} from './container-logs.js'
 
+export async function startService(
+  projectName: string,
+  pathToCompose: string,
+  serviceName: string,
+) {
+  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'start', serviceName])
+}
+
+export async function stopService(projectName: string, pathToCompose: string, serviceName: string) {
+  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'stop', serviceName])
+}
+
+export async function pauseService(
+  projectName: string,
+  pathToCompose: string,
+  serviceName: string,
+) {
+  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'pause', serviceName])
+}
+
+export async function unpauseService(
+  projectName: string,
+  pathToCompose: string,
+  serviceName: string,
+) {
+  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'unpause', serviceName])
+}
+
+export async function runService(
+  projectName: string,
+  pathToCompose: string,
+  serviceName: string,
+  commandWithArgs: string[],
+) {
+  return await execa(
+    'docker',
+    ['compose', '-p', projectName, '-f', pathToCompose, 'run', serviceName, ...commandWithArgs],
+    {env: {PATH: process.env.PATH}},
+  )
+}
+
 export async function waitForServiceToExit(
   projectName: string,
   pathToCompose: string,
@@ -28,18 +69,5 @@ export async function waitForServiceToExit(
       }
     },
     {maxRetryTime: timeout},
-  )
-}
-
-export async function runService(
-  projectName: string,
-  pathToCompose: string,
-  serviceName: string,
-  commandWithArgs: string[],
-) {
-  return await execa(
-    'docker',
-    ['compose', '-p', projectName, '-f', pathToCompose, 'run', serviceName, ...commandWithArgs],
-    {env: {PATH: process.env.PATH}},
   )
 }

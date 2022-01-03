@@ -40,3 +40,13 @@ export async function listContainers(
     ).stdout,
   )
 }
+
+export async function containerExists(
+  projectName: string,
+  pathToCompose: string,
+  serviceName: string,
+): Promise<boolean> {
+  const containers = await listContainers(projectName, pathToCompose)
+
+  return !!containers.find((c) => c.Service === serviceName)
+}
