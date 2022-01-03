@@ -4,7 +4,8 @@ import {
   extractContainerIdFromName,
   extractProjectNameFromContainer,
 } from './project-name.js'
-import debug from './debug.js'
+import debug, {Debugger} from './debug.js'
+const log = debug('docker-compose-testkit:debug')
 
 function getUnixTimestampNow() {
   return Math.floor(Date.now() / 1000)
@@ -19,16 +20,16 @@ function getStaleContainers(
     .split('\n')
     .filter((o) => o.length > 0 && o.indexOf('testkit__') !== -1)
     .filter((o) => {
-      debug(`inspecting container named: ${o} for cleanup`)
+      log(`inspecting container named: ${o} for cleanup`)
       const decision =
         extractTimestampFromName(o) <= minutesAgoInUnixTimestamp ||
         containerRetentionInMinutesParam === 0
       if (decision) {
-        debug(
+        log(
           `container named: ${o} is more than ${containerRetentionInMinutesParam} minutes old and will be cleaned up`,
         )
       } else {
-        debug(`container named: ${o} is fresh and will NOT be cleaned up`)
+        log(`container named: ${o} is fresh and will NOT be cleaned up`)
       }
       return decision
     })
@@ -39,12 +40,13 @@ export async function cleanupContainersByEnvironmentName(
   pathToCompose: string,
   displayName: string,
   forceKill: boolean,
+  log: Debugger,
 ) {
   const consoleMessage = `${
     forceKill ? 'Killing' : 'Stopping'
   } all containers of environment codenamed: ${displayName}.. `
 
-  debug(consoleMessage)
+  log(consoleMessage)
 
   await execa('docker', [
     'compose',
@@ -56,7 +58,7 @@ export async function cleanupContainersByEnvironmentName(
   ])
 
   const consoleMessageDispose = `Disposing of ${displayName} environment.. `
-  debug(consoleMessageDispose)
+  log(consoleMessageDispose)
 
   await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'down', '-v'])
 }
@@ -100,7 +102,7 @@ export async function killByContainerId(containerId: string) {
 }
 
 export async function killNetworkByProjectName(projectName: string) {
-  debug(`Removing network for project name: ${projectName}...`)
+  log(`Removing network for project name: ${projectName}...`)
   await execa('docker', [
     'network',
     'ls',
@@ -119,11 +121,11 @@ export async function killNetworkByProjectName(projectName: string) {
 }
 
 export async function removeStaleVolumes() {
-  debug("Removing volumes which we don't need..")
+  log("Removing volumes which we don't need..")
   try {
     // http://stackoverflow.com/questions/17402345/ignore-empty-results-for-xargs-in-mac-os-x
     await execa('(docker volume ls -q || echo :)', ['|', 'xargs', 'docker', 'volume', 'rm'])
   } catch (err) {
-    debug("No volumes require removal.. we're good to go")
+    log("No volumes require removal.. we're good to go")
   }
 }

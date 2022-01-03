@@ -68,6 +68,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     ...options,
   }
   const {project, displayName} = getProjectName(projectName)
+  const log = debug(`docker-compose-testkit:info:${displayName}`)
 
   async function setup() {
     if (pullImages) {
@@ -82,7 +83,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
       ? `, using only these services: ${servicesToStart.join(',')}`
       : ''
     const consoleMessage = `starting up runtime environment for this run (codenamed: ${displayName})${onlyTheseServicesMessage}... `
-    debug(consoleMessage)
+    log(consoleMessage)
 
     const finalEnv = replaceFunctionsWithTheirValues(env)
 
@@ -95,7 +96,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
 
   async function teardown() {
     if (cleanup) {
-      await cleanupContainersByEnvironmentName(project, pathToCompose, displayName, forceKill)
+      await cleanupContainersByEnvironmentName(project, pathToCompose, displayName, forceKill, log)
     }
   }
 
