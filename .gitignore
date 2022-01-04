@@ -39,6 +39,7 @@ jspm_packages/
 # typescript build directory
 build/
 tsconfig.tsbuildinfo
+tsconfig.build.tsbuildinfo
 
 # Optional npm cache directory
 .npm

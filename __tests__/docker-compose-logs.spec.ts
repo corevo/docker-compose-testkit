@@ -4,7 +4,7 @@ import {createWriteStream, unlinkSync, readFileSync} from 'fs'
 import {jest, describe, it, beforeAll, afterAll, beforeEach, afterEach, expect} from '@jest/globals'
 import retry from 'p-retry'
 import dockerCompose from '../src/docker-compose-testkit.js'
-import {tailLogsForServices, getLogsForService} from '../src/container-logs.js'
+import {tailLogsForServices} from '../src/container-logs.js'
 import debug from '../src/debug.js'
 
 jest.setTimeout(30 * 1000)
@@ -57,6 +57,12 @@ describe('docker-compose-logs', () => {
         },
         {retries: 10, minTimeout: 100, maxTimeout: 200},
       ).finally(kill)
+    })
+
+    it('should get the logs of a single service', async () => {
+      const logs = (await compose.getLogsForService('node')).split('\n')
+      expect(logs.length).toBeGreaterThanOrEqual(3)
+      expect(logs[0]).toMatch(new RegExp(`${compose.projectName}-node-1  | log message #\d+`))
     })
   })
 

@@ -74,6 +74,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     orphanCleanup: true,
     cleanup: true,
     pullImages: false,
+    forceKill: true,
     containerRetentionInMinutes: 5,
     ...options,
   }

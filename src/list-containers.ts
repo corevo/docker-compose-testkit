@@ -28,7 +28,7 @@ export async function listContainers(
   return JSON.parse(
     (
       await execa('docker', [
-        'compsoe',
+        'compose',
         '-p',
         projectName,
         '-f',

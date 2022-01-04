@@ -1,0 +1,14 @@
+version: '3'
+services:
+  first:
+    image: node:current-alpine
+    command: node /fixtures/${FIXTURE}.js
+    volumes:
+      - ../fixtures:/fixtures
+  second:
+    image: node:current-alpine
+    command: node /fixtures/${FIXTURE_SECOND}.js
+    environment:
+      EXIT_CODE: ${EXIT_CODE}
+    volumes:
+      - ../fixtures:/fixtures

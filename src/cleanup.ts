@@ -46,7 +46,7 @@ export async function cleanupContainersByEnvironmentName(
     log,
   }: {
     displayName: string
-    forceKill?: boolean
+    forceKill: boolean
     log: Debugger
   },
 ) {
@@ -56,15 +56,9 @@ export async function cleanupContainersByEnvironmentName(
 
   log(consoleMessage)
 
-  if (forceKill === undefined) {
-    await composeKill(projectName, pathToCompose).catch(() =>
-      composeDown(projectName, pathToCompose),
-    )
-  } else {
-    await (forceKill
-      ? composeKill(projectName, pathToCompose)
-      : composeDown(projectName, pathToCompose))
-  }
+  await (forceKill
+    ? composeKill(projectName, pathToCompose).catch(() => composeDown(projectName, pathToCompose))
+    : composeDown(projectName, pathToCompose))
 
   const consoleMessageDispose = `Disposing of ${displayName} environment.. `
   log(consoleMessageDispose)

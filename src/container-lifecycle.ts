@@ -2,7 +2,7 @@ import retry, {AbortError} from 'p-retry'
 import {execa} from 'execa'
 import {listContainers} from './list-containers.js'
 import {getLogsForService} from './container-logs.js'
-import debug from './debug.js'
+import {log} from './debug.js'
 
 export async function composeDown(projectName: string, pathToCompose: string) {
   await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'down'])
@@ -70,18 +70,24 @@ export async function waitForServiceToExit(
         (c) => c.Service === serviceName,
       )
 
+      log(JSON.stringify(container, undefined, 2))
+
       if (!container || container.State !== 'exited') {
         throw new Error('Service does not exist or did not exit')
       } else if (!anyExitCode && container.ExitCode !== 0) {
         const errorMessage = `Service exited with exit code ${
           container.ExitCode
         }:\n${await getLogsForService(projectName, pathToCompose, serviceName)}`
-        debug(errorMessage)
+        log(errorMessage)
         throw new AbortError(errorMessage)
       } else {
         return
       }
     },
-    {maxRetryTime: timeout},
-  )
+    {maxRetryTime: timeout, minTimeout: 100, maxTimeout: 1000},
+  ).catch((err) => {
+    const error = err as any
+    // workaround for jest not displaying the error message
+    throw new Error(error.message)
+  })
 }
