@@ -4,20 +4,18 @@ import {getLogsForService} from './container-logs.js'
 
 const serviceAddressCache = new Map()
 
+export interface AddressOptions {
+  healthCheck?: HealthCheck
+  fiveHundedStatusIsOk?: boolean
+  maxRetries?: number
+}
+
 export async function getAddressForService(
   projectName: string,
   pathToCompose: string,
   serviceName: string,
   exposedPort: number,
-  {
-    healthCheck = undefined,
-    fiveHundedStatusIsOk = false,
-    maxRetries = 10,
-  }: {
-    healthCheck?: HealthCheck
-    fiveHundedStatusIsOk?: boolean
-    maxRetries?: number
-  } = {},
+  {healthCheck = undefined, fiveHundedStatusIsOk = false, maxRetries = 10}: AddressOptions = {},
 ) {
   const serviceAddressKey = JSON.stringify({projectName, pathToCompose, serviceName, exposedPort})
   const possibleAddress = serviceAddressCache.get(serviceAddressKey)

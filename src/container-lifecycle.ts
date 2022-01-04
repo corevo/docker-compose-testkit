@@ -4,6 +4,14 @@ import {listContainers} from './list-containers.js'
 import {getLogsForService} from './container-logs.js'
 import debug from './debug.js'
 
+export async function composeDown(projectName: string, pathToCompose: string) {
+  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'down'])
+}
+
+export async function composeKill(projectName: string, pathToCompose: string) {
+  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'kill'])
+}
+
 export async function startService(
   projectName: string,
   pathToCompose: string,
@@ -45,11 +53,16 @@ export async function runService(
   )
 }
 
+export interface ExitOptions {
+  anyExitCode: boolean
+  timeout: number
+}
+
 export async function waitForServiceToExit(
   projectName: string,
   pathToCompose: string,
   serviceName: string,
-  {anyExitCode, timeout} = {anyExitCode: false, timeout: 5 * 60 * 1000},
+  {anyExitCode, timeout}: ExitOptions = {anyExitCode: false, timeout: 5 * 60 * 1000},
 ) {
   await retry(
     async () => {

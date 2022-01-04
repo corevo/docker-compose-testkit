@@ -1,0 +1,7 @@
+version: '3'
+services:
+  node:
+    image: node:current-alpine
+    command: node /fixtures/${FIXTURE}.js
+    volumes:
+      - ../fixtures:/fixtures

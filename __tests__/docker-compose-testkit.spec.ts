@@ -5,7 +5,7 @@ import dockerCompose from '../src/docker-compose-testkit.js'
 
 jest.setTimeout(30 * 1000)
 
-describe('service-compose-network', () => {
+describe('docker-compose-testkit', () => {
   const pathToCompose = path.join(
     path.dirname(fileURLToPath(import.meta.url)),
     'docker-compose.yml',
@@ -17,4 +17,3 @@ describe('service-compose-network', () => {
     await compose.teardown()
   })
 })
-

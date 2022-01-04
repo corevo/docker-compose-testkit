@@ -4,6 +4,7 @@ import {
   extractContainerIdFromName,
   extractProjectNameFromContainer,
 } from './project-name.js'
+import {composeDown, composeKill} from './container-lifecycle.js'
 import debug, {Debugger} from './debug.js'
 const log = debug('docker-compose-testkit:debug')
 
@@ -19,6 +20,7 @@ function getStaleContainers(
   return stdout
     .split('\n')
     .filter((o) => o.length > 0 && o.indexOf('testkit__') !== -1)
+    .map((o) => o.substr(1, o.length - 2))
     .filter((o) => {
       log(`inspecting container named: ${o} for cleanup`)
       const decision =
@@ -38,9 +40,15 @@ function getStaleContainers(
 export async function cleanupContainersByEnvironmentName(
   projectName: string,
   pathToCompose: string,
-  displayName: string,
-  forceKill: boolean,
-  log: Debugger,
+  {
+    displayName,
+    forceKill,
+    log,
+  }: {
+    displayName: string
+    forceKill?: boolean
+    log: Debugger
+  },
 ) {
   const consoleMessage = `${
     forceKill ? 'Killing' : 'Stopping'
@@ -48,14 +56,15 @@ export async function cleanupContainersByEnvironmentName(
 
   log(consoleMessage)
 
-  await execa('docker', [
-    'compose',
-    '-p',
-    projectName,
-    '-f',
-    pathToCompose,
-    forceKill ? 'kill' : 'down',
-  ])
+  if (forceKill === undefined) {
+    await composeKill(projectName, pathToCompose).catch(() =>
+      composeDown(projectName, pathToCompose),
+    )
+  } else {
+    await (forceKill
+      ? composeKill(projectName, pathToCompose)
+      : composeDown(projectName, pathToCompose))
+  }
 
   const consoleMessageDispose = `Disposing of ${displayName} environment.. `
   log(consoleMessageDispose)
@@ -103,28 +112,34 @@ export async function killByContainerId(containerId: string) {
 
 export async function killNetworkByProjectName(projectName: string) {
   log(`Removing network for project name: ${projectName}...`)
-  await execa('docker', [
-    'network',
-    'ls',
-    '|',
-    'grep',
-    projectName,
-    '|',
-    'awk',
-    "'{print $2}'",
-    '|',
-    'xargs',
+  await execa(
     'docker',
-    'network',
-    'rm',
-  ])
+    [
+      'network',
+      'ls',
+      '|',
+      'grep',
+      projectName,
+      '|',
+      'awk',
+      "'{print $2}'",
+      '|',
+      'xargs',
+      'docker',
+      'network',
+      'rm',
+    ],
+    {shell: true},
+  )
 }
 
 export async function removeStaleVolumes() {
   log("Removing volumes which we don't need..")
   try {
     // http://stackoverflow.com/questions/17402345/ignore-empty-results-for-xargs-in-mac-os-x
-    await execa('(docker volume ls -q || echo :)', ['|', 'xargs', 'docker', 'volume', 'rm'])
+    await execa('(docker volume ls -q || echo :)', ['|', 'xargs', 'docker', 'volume', 'rm'], {
+      shell: true,
+    })
   } catch (err) {
     log("No volumes require removal.. we're good to go")
   }

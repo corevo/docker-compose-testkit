@@ -2,9 +2,13 @@ import {execa, ExecaReturnValue} from 'execa'
 import {cleanupContainersByEnvironmentName, cleanupOrphanEnvironments} from './cleanup.js'
 import {getProjectName} from './project-name.js'
 import {pullImagesFromComposeFile} from './pull-images.js'
-import {getAddressForService, getInternalIpForService} from './service-compose-network.js'
+import {
+  AddressOptions,
+  getAddressForService,
+  getInternalIpForService,
+} from './service-compose-network.js'
 import {listContainers, containerExists, Container} from './list-containers.js'
-import {getLogsForService} from './container-logs.js'
+import {getLogsForService, tailLogsForServices} from './container-logs.js'
 import {
   startService,
   stopService,
@@ -12,6 +16,7 @@ import {
   unpauseService,
   runService,
   waitForServiceToExit,
+  ExitOptions,
 } from './container-lifecycle.js'
 import debug from './debug.js'
 
@@ -19,14 +24,15 @@ type EnvFunc = () => string
 type Env = Record<string, string | EnvFunc>
 
 export interface ComposeOptions {
-  servicesToStart: string[]
-  projectName: string
-  env: Env
-  orphanCleanup: boolean
-  cleanup: boolean
-  pullImages: boolean
-  forceKill: boolean
-  containerRetentionInMinutes: number
+  servicesToStart?: string[]
+  tailServices?: string
+  projectName?: string
+  env?: Env
+  orphanCleanup?: boolean
+  cleanup?: boolean
+  pullImages?: boolean
+  forceKill?: boolean
+  containerRetentionInMinutes?: number
 }
 
 export interface Compose {
@@ -34,12 +40,16 @@ export interface Compose {
   pathToCompose: string
   setup: () => Promise<void>
   teardown: () => Promise<void>
-  getAddressForService: (serviceName: string, exposedPort: number) => Promise<string>
+  getAddressForService: (
+    serviceName: string,
+    exposedPort: number,
+    options?: AddressOptions,
+  ) => Promise<string>
   getInternalIpForService: (serviceName: string) => Promise<string>
   listContainers: () => Promise<Container[]>
   containerExists: (serviceName: string) => Promise<boolean>
   getLogsForService: (serviceName: string) => Promise<string>
-  waitForServiceToExit: (serviceName: string) => Promise<void>
+  waitForServiceToExit: (serviceName: string, options?: ExitOptions) => Promise<void>
   runService: (serviceName: string, commandWithArgs: string[]) => Promise<ExecaReturnValue<string>>
   startService: (serviceName: string) => Promise<void>
   stopService: (serviceName: string) => Promise<void>
@@ -50,6 +60,7 @@ export interface Compose {
 export function compose(pathToCompose: string, options?: ComposeOptions): Compose {
   const {
     servicesToStart,
+    tailServices,
     projectName,
     env,
     orphanCleanup,
@@ -63,12 +74,12 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     orphanCleanup: true,
     cleanup: true,
     pullImages: false,
-    forceKill: false,
     containerRetentionInMinutes: 5,
     ...options,
   }
   const {project, displayName} = getProjectName(projectName)
   const log = debug(`docker-compose-testkit:info:${displayName}`)
+  let killTailProcess: any = undefined
 
   async function setup() {
     if (pullImages) {
@@ -92,11 +103,24 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
       ['compose', '-p', project, '-f', pathToCompose, 'up', '-d', ...servicesToStart],
       {env: {path: process.env.PATH, ...finalEnv}},
     )
+
+    //if (tailServices === true || (Array.isArray(tailServices) && tailServices.length)) {
+    if (tailServices) {
+      killTailProcess = tailLogsForServices(project, pathToCompose, [tailServices], process.stdout)
+    }
   }
 
   async function teardown() {
+    if (killTailProcess) {
+      await killTailProcess()
+    }
+
     if (cleanup) {
-      await cleanupContainersByEnvironmentName(project, pathToCompose, displayName, forceKill, log)
+      await cleanupContainersByEnvironmentName(project, pathToCompose, {
+        displayName,
+        forceKill,
+        log,
+      })
     }
   }
 
@@ -125,11 +149,11 @@ export type {Container, Publisher, State} from './list-containers.js'
 function replaceFunctionsWithTheirValues(env: Env): Record<string, string> {
   return Object.entries(env).reduce((finalEnv, [key, value]) => {
     if (typeof value === 'function') {
-      env[key] = value()
+      finalEnv[key] = value()
     } else {
-      env[key] = value
+      finalEnv[key] = value
     }
 
     return finalEnv
-  }, {})
+  }, {} as Record<string, string>)
 }
