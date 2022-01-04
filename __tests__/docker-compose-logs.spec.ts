@@ -5,7 +5,6 @@ import {jest, describe, it, beforeAll, afterAll, beforeEach, afterEach, expect} 
 import retry from 'p-retry'
 import dockerCompose from '../src/docker-compose-testkit.js'
 import {tailLogsForServices} from '../src/container-logs.js'
-import debug from '../src/debug.js'
 
 jest.setTimeout(30 * 1000)
 
@@ -109,7 +108,6 @@ describe('docker-compose-logs', () => {
     afterEach(deleteTempLog)
 
     it('should tail the logs of all services', async () => {
-      const log = debug('docker-compose-testkit:info:kaki')
       const stream = createWriteStream(tempLog)
       const kill = tailLogsForServices(compose.projectName, compose.pathToCompose, [], stream)
 
@@ -117,7 +115,6 @@ describe('docker-compose-logs', () => {
         async () => {
           let logs: string[]
           try {
-            log(readFileSync(tempLog, {encoding: 'utf-8'}))
             logs = readFileSync(tempLog, {encoding: 'utf-8'}).split('\n')
           } catch {
             throw new Error('force retry')
