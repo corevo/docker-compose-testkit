@@ -33,12 +33,14 @@ services:
 
 The following test will up the network before all the tests, and tear it down once the tests finish
 ```ts
+import path from 'path'
+import {fileURLToPath} from 'url'
 import dockerCompose from 'docker-compose-testkit'
 
 describe('testing using docker compose', () => {
   const pathToCompose = path.join(
     path.dirname(fileURLToPath(import.meta.url)),
-    'docker-compose-fixture.yml',
+    'docker-compose.yml',
   )
   const compose = dockerCompose(pathToCompose)
 
