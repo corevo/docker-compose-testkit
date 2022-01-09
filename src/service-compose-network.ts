@@ -4,6 +4,10 @@ import {getLogsForService} from './container-logs.js'
 
 const serviceAddressCache = new Map()
 
+export function clearServiceAddressCache() {
+  serviceAddressCache.clear()
+}
+
 export interface AddressOptions {
   healthCheck?: HealthCheck
   fiveHundedStatusIsOk?: boolean

@@ -17,10 +17,18 @@ export async function runHealthCheck({
 }) {
   if (health === false) return
   if (health === undefined || typeof health === 'string') {
-    const response = await got(`http://${address}${health || '/'}`, {retry: {limit: maxRetries}})
+    try {
+      await got(`http://${address}${health || '/'}`, {retry: {limit: maxRetries}})
+    } catch (err) {
+      const error = err as any
+      if (
+        error.code === 'ERR_NON_2XX_3XX_RESPONSE' &&
+        error.response.statusCode < (fiveHundedStatusIsOk ? 600 : 500)
+      ) {
+        return
+      }
 
-    if (response.statusCode >= (fiveHundedStatusIsOk ? 600 : 500)) {
-      throw new Error(`Got status ${response.statusCode}`)
+      throw error
     }
   } else {
     await retry(
