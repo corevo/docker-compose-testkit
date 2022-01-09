@@ -1,6 +1,6 @@
 {
   "name": "docker-compose-testkit",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "exports": "./build/docker-compose-testkit.js",
   "types": "build/docker-compose-testkit.d.ts",

@@ -99,11 +99,19 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
 
     const finalEnv = replaceFunctionsWithTheirValues(env)
 
-    await execa(
-      'docker',
-      ['compose', '-p', project, '-f', pathToCompose, 'up', '-d', ...servicesToStart],
-      {env: {path: process.env.PATH, ...finalEnv}},
-    )
+    try {
+      await execa(
+        'docker',
+        ['compose', '-p', project, '-f', pathToCompose, 'up', '-d', ...servicesToStart],
+        {env: {path: process.env.PATH, ...finalEnv}},
+      )
+    } catch (err) {
+      const error = err as any
+      if (error.stderr !== 'no service selected') {
+        throw error
+      }
+      log(error.stderr)
+    }
 
     //if (tailServices === true || (Array.isArray(tailServices) && tailServices.length)) {
     if (tailServices) {
