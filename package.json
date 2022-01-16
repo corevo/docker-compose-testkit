@@ -1,6 +1,6 @@
 {
   "name": "docker-compose-testkit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "exports": "./build/docker-compose-testkit.js",
   "types": "build/docker-compose-testkit.d.ts",
@@ -8,7 +8,7 @@
     "build"
   ],
   "engines": {
-    "node": ">=16"
+    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
   },
   "scripts": {
     "clean": "npm run clean:ts && rm -rf build tsconfig.build.tsbuildinfo",
