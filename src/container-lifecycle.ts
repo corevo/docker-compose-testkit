@@ -54,15 +54,15 @@ export async function runService(
 }
 
 export interface ExitOptions {
-  anyExitCode: boolean
-  timeout: number
+  anyExitCode?: boolean
+  timeout?: number
 }
 
 export async function waitForServiceToExit(
   projectName: string,
   pathToCompose: string,
   serviceName: string,
-  {anyExitCode, timeout}: ExitOptions = {anyExitCode: false, timeout: 5 * 60 * 1000},
+  {anyExitCode = false, timeout = 5 * 60 * 1000}: ExitOptions = {},
 ) {
   await retry(
     async () => {
@@ -72,7 +72,9 @@ export async function waitForServiceToExit(
 
       log(JSON.stringify(container, undefined, 2))
 
-      if (!container || container.State !== 'exited') {
+      if (container && container.State === 'running') {
+        throw new Error('Service is still running')
+      } else if (!container || container.State !== 'exited') {
         throw new Error('Service does not exist or did not exit')
       } else if (!anyExitCode && container.ExitCode !== 0) {
         const errorMessage = `Service exited with exit code ${
@@ -84,7 +86,7 @@ export async function waitForServiceToExit(
         return
       }
     },
-    {maxRetryTime: timeout, minTimeout: 100, maxTimeout: 1000},
+    {maxRetryTime: timeout, minTimeout: 100, maxTimeout: 1000, retries: timeout / 1000},
   ).catch((err) => {
     const error = err as any
     // workaround for jest not displaying the error message

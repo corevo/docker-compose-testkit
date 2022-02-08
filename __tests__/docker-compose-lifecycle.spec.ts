@@ -93,5 +93,29 @@ describe('docker-compose-lifecycle', () => {
       await compose.teardown()
       expect.assertions(4)
     })
+
+    it('should throw if service failed to exit within the timeout', async () => {
+      const pathToCompose = path.join(
+        path.dirname(fileURLToPath(import.meta.url)),
+        'docker-compose-fixture-exit.yml',
+      )
+      const compose = dockerCompose(pathToCompose, {
+        forceKill: true,
+        env: {
+          FIXTURE: 'logs',
+          FIXTURE_SECOND: 'exit3',
+        },
+      })
+
+      await compose.setup()
+      try {
+        await compose.waitForServiceToExit('second', {timeout: 3000})
+      } catch (err) {
+        const error = err as any
+        expect(error.message).toEqual('Service is still running')
+      }
+      await compose.teardown()
+      expect.assertions(1)
+    })
   })
 })
