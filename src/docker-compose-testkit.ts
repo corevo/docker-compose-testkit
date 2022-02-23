@@ -21,7 +21,8 @@ import {
 import debug from './debug.js'
 
 type EnvFunc = () => string
-type Env = Record<string, string | EnvFunc>
+type EnvAsyncFunc = () => Promise<string>
+type Env = Record<string, string | EnvFunc | EnvAsyncFunc>
 
 export interface ComposeOptions {
   servicesToStart?: string[]
@@ -97,7 +98,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     const consoleMessage = `starting up runtime environment for this run (codenamed: ${displayName})${onlyTheseServicesMessage}... `
     log(consoleMessage)
 
-    const finalEnv = replaceFunctionsWithTheirValues(env)
+    const finalEnv = await replaceFunctionsWithTheirValues(env)
 
     try {
       await execa(
@@ -155,13 +156,15 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
 export default compose
 export type {Container, Publisher, State} from './list-containers.js'
 
-function replaceFunctionsWithTheirValues(env: Env): Record<string, string> {
-  return Object.entries(env).reduce((finalEnv, [key, value]) => {
-    if (typeof value === 'function') {
-      finalEnv[key] = value()
-    } else {
-      finalEnv[key] = value
-    }
+async function replaceFunctionsWithTheirValues(env: Env): Promise<Record<string, string>> {
+  return (
+    await Promise.all(
+      Object.entries(env).map(([k, v]) =>
+        typeof v === 'function' ? Promise.resolve(v()).then((f) => [k, f]) : [k, v],
+      ),
+    )
+  ).reduce((finalEnv, [key, value]) => {
+    finalEnv[key] = value
 
     return finalEnv
   }, {} as Record<string, string>)

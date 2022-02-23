@@ -1,0 +1,12 @@
+version: '3'
+services:
+  node:
+    image: node:current-alpine
+    command: node /fixtures/env.js
+    environment:
+      STRING: ${STRING}
+      FUNCTION: ${FUNCTION}
+      PROMISE: ${PROMISE}
+    volumes:
+      - ../fixtures:/fixtures
+
