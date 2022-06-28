@@ -82,6 +82,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
   const {project, displayName} = getProjectName(projectName)
   const log = debug(`docker-compose-testkit:info:${displayName}`)
   let killTailProcess: any = undefined
+  const finalEnv: Record<string, string> = {}
 
   async function setup() {
     if (pullImages) {
@@ -98,7 +99,10 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     const consoleMessage = `starting up runtime environment for this run (codenamed: ${displayName})${onlyTheseServicesMessage}... `
     log(consoleMessage)
 
-    const finalEnv = await replaceFunctionsWithTheirValues(env)
+    // Keep the pointer to finalEnv to not break the bind for runService
+    Object.entries(await replaceFunctionsWithTheirValues(env)).forEach(([k, v]) => {
+      finalEnv[k] = v
+    })
 
     try {
       await execa(
@@ -145,7 +149,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     containerExists: containerExists.bind(undefined, project, pathToCompose),
     getLogsForService: getLogsForService.bind(undefined, project, pathToCompose),
     waitForServiceToExit: waitForServiceToExit.bind(undefined, project, pathToCompose),
-    runService: runService.bind(undefined, project, pathToCompose),
+    runService: runService.bind(undefined, project, pathToCompose, finalEnv),
     startService: startService.bind(undefined, project, pathToCompose),
     stopService: stopService.bind(undefined, project, pathToCompose),
     pauseService: pauseService.bind(undefined, project, pathToCompose),

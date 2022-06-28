@@ -43,13 +43,14 @@ export async function unpauseService(
 export async function runService(
   projectName: string,
   pathToCompose: string,
+  env: Record<string, string>,
   serviceName: string,
   commandWithArgs: string[],
 ) {
   return await execa(
     'docker',
     ['compose', '-p', projectName, '-f', pathToCompose, 'run', serviceName, ...commandWithArgs],
-    {env: {PATH: process.env.PATH}},
+    {env: {PATH: process.env.PATH, ...env}},
   )
 }
 

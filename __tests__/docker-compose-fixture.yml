@@ -3,5 +3,7 @@ services:
   node:
     image: node:current-alpine
     command: node /fixtures/${FIXTURE}.js
+    environment:
+      TEST_ENV_VAR: ${TEST_ENV_VAR}
     volumes:
       - ../fixtures:/fixtures

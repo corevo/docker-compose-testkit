@@ -14,6 +14,7 @@ describe('docker-compose-lifecycle', () => {
     const compose = dockerCompose(pathToCompose, {
       forceKill: true,
       env: {
+        TEST_ENV_VAR: 'hello world',
         FIXTURE: 'exit2',
       },
     })
@@ -32,14 +33,22 @@ describe('docker-compose-lifecycle', () => {
       expect(result.stdout).toEqual('hello world')
     })
 
-    it('should run a command in a service', async () => {
+    it('should run a failing command in a service', async () => {
       try {
         await compose.runService('node', ['node', '/fixtures/exit2.js', '3', 'error message'])
       } catch (err) {
         const error = err as any
         expect(error.exitCode).toBe(3)
-        expect(error.stderr.split('\n')[1]).toEqual('error message')
+        expect(error.stderr).toEqual('error message')
       }
+    })
+
+    it('should pass the setup env vars to the service', async () => {
+      const result = await compose.runService('node', ['node', '/fixtures/env.js'])
+
+      expect(JSON.parse(result.stdout)).toMatchObject({
+        TEST_ENV_VAR: 'hello world',
+      })
     })
   })
 
