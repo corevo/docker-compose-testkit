@@ -20,8 +20,8 @@ import {
 } from './container-lifecycle.js'
 import debug from './debug.js'
 
-type EnvFunc = () => string
-type EnvAsyncFunc = () => Promise<string>
+type EnvFunc = () => string | number
+type EnvAsyncFunc = () => Promise<string | number>
 type Env = Record<string, string | EnvFunc | EnvAsyncFunc>
 
 export interface ComposeOptions {
@@ -164,7 +164,7 @@ async function replaceFunctionsWithTheirValues(env: Env): Promise<Record<string,
   return (
     await Promise.all(
       Object.entries(env).map(([k, v]) =>
-        typeof v === 'function' ? Promise.resolve(v()).then((f) => [k, f]) : [k, v],
+        typeof v === 'function' ? Promise.resolve(v()).then((f) => [k, f.toString()]) : [k, v],
       ),
     )
   ).reduce((finalEnv, [key, value]) => {
