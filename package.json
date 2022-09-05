@@ -1,6 +1,6 @@
 {
   "name": "docker-compose-testkit",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "type": "module",
   "exports": "./build/docker-compose-testkit.js",
   "types": "build/docker-compose-testkit.d.ts",
@@ -26,7 +26,7 @@
   "dependencies": {
     "debug": "^4.3.3",
     "execa": "^6.0.0",
-    "got": "^12.0.0",
+    "got": "12.3.1",
     "js-yaml": "^4.1.0",
     "lodash.capitalize": "^4.2.1",
     "p-retry": "^5.0.0",
