@@ -22,7 +22,7 @@ import debug from './debug.js'
 
 type EnvFunc = () => string | number
 type EnvAsyncFunc = () => Promise<string | number>
-type Env = Record<string, string | EnvFunc | EnvAsyncFunc>
+type Env = Record<string, string | Promise<string> | EnvFunc | EnvAsyncFunc>
 
 export interface ComposeOptions {
   servicesToStart?: string[]
@@ -163,9 +163,15 @@ export type {Container, Publisher, State} from './list-containers.js'
 async function replaceFunctionsWithTheirValues(env: Env): Promise<Record<string, string>> {
   return (
     await Promise.all(
-      Object.entries(env).map(([k, v]) =>
-        typeof v === 'function' ? Promise.resolve(v()).then((f) => [k, f.toString()]) : [k, v],
-      ),
+      Object.entries(env).map(([k, v]) => {
+        if (typeof v === 'function') {
+          return Promise.resolve(v()).then((f) => [k, f.toString()])
+        } else if (typeof (v as any)?.then === 'function') {
+          return (v as any).then((f: any) => [k, f.toString()])
+        } else {
+          return [k, v]
+        }
+      }),
     )
   ).reduce((finalEnv, [key, value]) => {
     finalEnv[key] = value

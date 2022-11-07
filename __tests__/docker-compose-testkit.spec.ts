@@ -36,6 +36,7 @@ describe('docker-compose-testkit', () => {
     const compose = dockerCompose(pathToCompose, {
       env: {
         STRING: 'hardcoded',
+        PROMISE_STRING: Promise.resolve('hardcoded promise'),
         FUNCTION: () => 'from function',
         PROMISE: () => Promise.resolve('from promise'),
       },
@@ -45,9 +46,10 @@ describe('docker-compose-testkit', () => {
 
     await compose.waitForServiceToExit('node')
     const logs = await compose.getLogsForService('node')
-    const parsedLogLine = JSON.parse(logs.split('\n')[0].substr(logs.indexOf('{')))
+    const parsedLogLine = JSON.parse(logs.split('\n')[0].substring(logs.indexOf('{')))
     expect(parsedLogLine).toMatchObject({
       STRING: 'hardcoded',
+      PROMISE_STRING: 'hardcoded promise',
       FUNCTION: 'from function',
       PROMISE: 'from promise',
     })

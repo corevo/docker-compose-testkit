@@ -5,6 +5,7 @@ services:
     command: node /fixtures/env.js
     environment:
       STRING: ${STRING}
+      PROMISE_STRING: ${PROMISE_STRING}
       FUNCTION: ${FUNCTION}
       PROMISE: ${PROMISE}
     volumes:
