@@ -3,16 +3,11 @@ import url from 'url'
 
 export default {
   extensionsToTreatAsEsm: ['.ts'],
-  globals: {
-    'ts-jest': {
-      useESM: true,
-    },
-  },
   testPathIgnorePatterns: ['/node_modules/'],
   testEnvironment: 'node',
   injectGlobals: false,
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.tsx?$': ['ts-jest', {useESM: true}],
   },
   reporters: ['default'],
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],

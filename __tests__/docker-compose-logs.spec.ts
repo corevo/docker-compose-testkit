@@ -52,7 +52,7 @@ describe('docker-compose-logs', () => {
           }
 
           expect(logs.length).toBeGreaterThanOrEqual(3)
-          expect(logs[0]).toMatch(new RegExp(`${compose.projectName}-node-1  | log message #\d+`))
+          expect(logs[2]).toMatch(new RegExp(`${compose.projectName}-node-1  | log message #\d+`))
         },
         {retries: 10, minTimeout: 100, maxTimeout: 200},
       ).finally(kill)

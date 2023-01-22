@@ -1,6 +1,6 @@
 {
   "name": "docker-compose-testkit",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "type": "module",
   "exports": "./build/docker-compose-testkit.js",
   "types": "build/docker-compose-testkit.d.ts",
@@ -33,7 +33,7 @@
     "supports-color": "^9.2.1"
   },
   "devDependencies": {
-    "@jest/globals": "^28.0.0",
+    "@jest/globals": "^29.0.0",
     "@types/chance": "^1.1.3",
     "@types/debug": "^4.1.7",
     "@types/js-yaml": "^4.0.5",
@@ -45,13 +45,13 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-typescript": "^3.0.0",
     "eslint-plugin-import": "^2.25.2",
-    "eslint-plugin-jest": "^26.1.1",
-    "eslint-plugin-no-only-tests": "^2.6.0",
+    "eslint-plugin-jest": "^27.0.0",
+    "eslint-plugin-no-only-tests": "^3.0.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "jest": "^28.0.0",
+    "jest": "^29.0.0",
     "prettier": "^2.4.1",
-    "ts-jest": "^28.0.0",
+    "ts-jest": "^29.0.0",
     "typescript": "^4.4.3"
   }
 }

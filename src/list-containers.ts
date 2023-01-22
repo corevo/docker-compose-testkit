@@ -34,6 +34,7 @@ export async function listContainers(
         '-f',
         pathToCompose,
         'ps',
+        '-a',
         '--format',
         'json',
       ])
