@@ -1,6 +1,6 @@
 {
   "name": "docker-compose-testkit",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "type": "module",
   "exports": "./build/docker-compose-testkit.js",
   "types": "build/docker-compose-testkit.d.ts",
@@ -25,7 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "debug": "^4.3.3",
-    "execa": "^6.0.0",
+    "execa": "^7.0.0",
     "got": "12.3.1",
     "js-yaml": "^4.1.0",
     "lodash.capitalize": "^4.2.1",
@@ -52,6 +52,6 @@
     "jest": "^29.0.0",
     "prettier": "^2.4.1",
     "ts-jest": "^29.0.0",
-    "typescript": "^4.4.3"
+    "typescript": "^5.0.0"
   }
 }

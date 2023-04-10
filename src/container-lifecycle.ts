@@ -4,12 +4,24 @@ import {listContainers} from './list-containers.js'
 import {getLogsForService} from './container-logs.js'
 import {log} from './debug.js'
 
-export async function composeDown(projectName: string, pathToCompose: string) {
-  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'down'])
+export async function composeDown(
+  projectName: string,
+  pathToCompose: string,
+  {env = {}}: {env?: Record<string, string>},
+) {
+  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'down'], {
+    env: {path: process.env.PATH, ...env},
+  })
 }
 
-export async function composeKill(projectName: string, pathToCompose: string) {
-  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'kill'])
+export async function composeKill(
+  projectName: string,
+  pathToCompose: string,
+  {env = {}}: {env?: Record<string, string>},
+) {
+  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'kill'], {
+    env: {path: process.env.PATH, ...env},
+  })
 }
 
 export async function startService(

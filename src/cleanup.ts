@@ -44,10 +44,12 @@ export async function cleanupContainersByEnvironmentName(
     displayName,
     forceKill,
     log,
+    env,
   }: {
     displayName: string
     forceKill: boolean
     log: Debugger
+    env: Record<string, string>
   },
 ) {
   const consoleMessage = `${
@@ -57,13 +59,17 @@ export async function cleanupContainersByEnvironmentName(
   log(consoleMessage)
 
   await (forceKill
-    ? composeKill(projectName, pathToCompose).catch(() => composeDown(projectName, pathToCompose))
-    : composeDown(projectName, pathToCompose))
+    ? composeKill(projectName, pathToCompose, {env}).catch(() =>
+        composeDown(projectName, pathToCompose, {env}),
+      )
+    : composeDown(projectName, pathToCompose, {env}))
 
   const consoleMessageDispose = `Disposing of ${displayName} environment.. `
   log(consoleMessageDispose)
 
-  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'down', '-v'])
+  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'down', '-v'], {
+    env: {path: process.env.PATH, ...env},
+  })
 }
 
 export async function cleanupOrphanEnvironments(containerRetentionInMinutesParam: number) {

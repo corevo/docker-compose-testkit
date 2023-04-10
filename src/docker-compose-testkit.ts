@@ -134,6 +134,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
         displayName,
         forceKill,
         log,
+        env: finalEnv,
       })
     }
   }
