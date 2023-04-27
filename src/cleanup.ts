@@ -77,7 +77,7 @@ export async function cleanupOrphanEnvironments(containerRetentionInMinutesParam
     containerRetentionInMinutesParam === 0
       ? getUnixTimestampNow()
       : getUnixTimestampNow() - 60 * containerRetentionInMinutesParam
-  const result = await execa('docker', ['ps', '--format', '"{{.ID}}__{{.Names}}"'])
+  const result = await execa('docker', ['ps', '-a', '--format', '"{{.ID}}__{{.Names}}"'])
 
   const staleContainers = getStaleContainers(
     result.stdout,
