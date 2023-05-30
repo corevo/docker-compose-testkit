@@ -51,6 +51,14 @@ describe('service-compose-network', () => {
     expect(nginxAddress).toMatch(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$/)
   })
 
+  it('should succeed to get the address of a TCP service', async () => {
+    const netcatAddress = await compose.getAddressForService('netcat', 80, {
+      tcpCheckOnly: true,
+      maxRetries: 1,
+    })
+    expect(netcatAddress).toMatch(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$/)
+  })
+
   it('should get the internal ip of a service', async () => {
     const nginxAddress = await compose.getInternalIpForService('nginx')
     expect(nginxAddress).toMatch(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)

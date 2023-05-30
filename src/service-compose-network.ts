@@ -10,6 +10,7 @@ export function clearServiceAddressCache() {
 
 export interface AddressOptions {
   healthCheck?: HealthCheck
+  tcpCheckOnly?: boolean
   fiveHundedStatusIsOk?: boolean
   maxRetries?: number
 }
@@ -19,7 +20,12 @@ export async function getAddressForService(
   pathToCompose: string,
   serviceName: string,
   exposedPort: number,
-  {healthCheck = undefined, fiveHundedStatusIsOk = false, maxRetries = 10}: AddressOptions = {},
+  {
+    healthCheck = undefined,
+    tcpCheckOnly = false,
+    fiveHundedStatusIsOk = false,
+    maxRetries = 10,
+  }: AddressOptions = {},
 ) {
   const serviceAddressKey = JSON.stringify({projectName, pathToCompose, serviceName, exposedPort})
   const possibleAddress = serviceAddressCache.get(serviceAddressKey)
@@ -44,6 +50,7 @@ export async function getAddressForService(
       address,
       health: healthCheck,
       maxRetries,
+      tcpCheckOnly,
       fiveHundedStatusIsOk,
     })
   } catch (err) {

@@ -6,3 +6,8 @@ services:
       - 80
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
+  netcat:
+    image: busybox:latest
+    ports:
+      - 80
+    command: nc -lkp 80
