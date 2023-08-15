@@ -22,7 +22,7 @@
 
     /* Module Resolution Options */
     /* When "node12" option is stable switch to it */
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     /* This needs to be false so our types are possible to consume without setting this */
     "esModuleInterop": true,
     "resolveJsonModule": true,
