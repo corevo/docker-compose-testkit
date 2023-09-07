@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2021",
-    "module": "es2022",
+    "module": "node16",
     /* this is a remporary fix for https://github.com/facebook/jest/issues/12098
      * if you're getting any weird type errors, you should override this param in your tsconfig.build.json
      * while keeping node as one of the types.

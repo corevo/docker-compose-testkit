@@ -13,7 +13,7 @@ export interface Container {
   ID: string
   Name: string
   Command: string
-  Project: string
+  Project: string | undefined
   Service: string
   State: State
   Health: string
@@ -25,21 +25,23 @@ export async function listContainers(
   projectName: string,
   pathToCompose: string,
 ): Promise<Container[]> {
-  return JSON.parse(
-    (
-      await execa('docker', [
-        'compose',
-        '-p',
-        projectName,
-        '-f',
-        pathToCompose,
-        'ps',
-        '-a',
-        '--format',
-        'json',
-      ])
-    ).stdout,
-  )
+  const {stdout} = await execa('docker', [
+    'compose',
+    '-p',
+    projectName,
+    '-f',
+    pathToCompose,
+    'ps',
+    '-a',
+    '--format',
+    'json',
+  ])
+
+  try {
+    return JSON.parse(stdout)
+  } catch {
+    return stdout.split('\n').map((out) => JSON.parse(out)) as Container[]
+  }
 }
 
 export async function containerExists(
