@@ -52,7 +52,7 @@ describe('docker-compose-logs', () => {
           }
 
           expect(logs.length).toBeGreaterThanOrEqual(3)
-          expect(logs[2]).toMatch(new RegExp(`${compose.projectName}-node-1  | log message #\d+`))
+          expect(logs[2]).toMatch(new RegExp(`node-1  | log message #\d+`))
         },
         {retries: 10, minTimeout: 100, maxTimeout: 200},
       ).finally(kill)
@@ -61,7 +61,7 @@ describe('docker-compose-logs', () => {
     it('should get the logs of a single service', async () => {
       const logs = (await compose.getLogsForService('node')).split('\n')
       expect(logs.length).toBeGreaterThanOrEqual(3)
-      expect(logs[0]).toMatch(new RegExp(`${compose.projectName}-node-1  | log message #\d+`))
+      expect(logs[0]).toMatch(new RegExp(`node-1  | log message #\d+`))
     })
   })
 
