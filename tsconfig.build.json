@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2021",
     "module": "node16",
-    "lib": ["es2021"],
+    "lib": ["dom", "es2021"],
     "declaration": true,
     "composite": true,
     "declarationMap": true,
