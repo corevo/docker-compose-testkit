@@ -37,11 +37,15 @@ export async function listContainers(
     'json',
   ])
 
-  try {
-    return JSON.parse(stdout)
-  } catch {
-    return stdout.split('\n').map((out) => JSON.parse(out)) as Container[]
+  if (stdout.trim()) {
+    try {
+      return JSON.parse(stdout)
+    } catch {
+      return stdout.split('\n').map((out) => JSON.parse(out)) as Container[]
+    }
   }
+
+  return []
 }
 
 export async function containerExists(
