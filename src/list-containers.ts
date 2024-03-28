@@ -39,7 +39,9 @@ export async function listContainers(
 
   if (stdout.trim()) {
     try {
-      return JSON.parse(stdout)
+      const result = JSON.parse(stdout)
+
+      return Array.isArray(result) ? result : [result]
     } catch {
       return stdout.split('\n').map((out) => JSON.parse(out)) as Container[]
     }
