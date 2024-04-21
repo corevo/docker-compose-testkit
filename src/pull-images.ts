@@ -34,8 +34,20 @@ export async function pullImagesFromComposeFile({
   return results.filter((p) => p.status === 'fulfilled').map((p) => (p as any).value)
 }
 
+async function doesImageExistLocally(name: string) {
+  try {
+    await execa('docker', ['inspect', name])
+
+    return true
+  } catch {
+    return false
+  }
+}
+
 export async function pullImageByName(name: string) {
-  await execa('docker', ['pull', name])
+  if (!(await doesImageExistLocally(name))) {
+    await execa('docker', ['pull', name])
+  }
 
   return name
 }
