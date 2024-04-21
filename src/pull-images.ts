@@ -29,7 +29,9 @@ export async function pullImagesFromComposeFile({
     ),
   )
 
-  return Promise.all(images.map((image) => pullImageByName(image)))
+  const results = await Promise.allSettled(images.map((image) => pullImageByName(image)))
+
+  return results.filter((p) => p.status === 'fulfilled').map((p) => (p as any).value)
 }
 
 export async function pullImageByName(name: string) {

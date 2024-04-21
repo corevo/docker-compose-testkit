@@ -2,4 +2,6 @@ version: '3'
 services:
   nginx:
     image: nginx:${NGINX_VERSION}
+  localimage:
+    image: corevo/local:latest
 
