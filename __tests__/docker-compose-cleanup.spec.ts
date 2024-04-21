@@ -7,7 +7,7 @@ jest.setTimeout(30 * 1000)
 
 describe('docker-compose-cleanup', () => {
   describe('multiple services', () => {
-    it.only('should force kill the remaining services', async () => {
+    it('should force kill the remaining services', async () => {
       const pathToCompose = path.join(
         path.dirname(fileURLToPath(import.meta.url)),
         'docker-compose-fixture-exit.yml',

@@ -39,6 +39,7 @@ export interface ComposeOptions {
 export interface Compose {
   projectName: string
   pathToCompose: string
+  pullImages: () => Promise<string[]>
   setup: () => Promise<void>
   teardown: () => Promise<void>
   getAddressForService: (
@@ -66,7 +67,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     env,
     orphanCleanup,
     cleanup,
-    pullImages,
+    pullImages: pullImagesConfig,
     forceKill,
     containerRetentionInMinutes,
   } = {
@@ -82,13 +83,31 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
   const {project, displayName} = getProjectName(projectName)
   const log = debug(`docker-compose-testkit:info:${displayName}`)
   let killTailProcess: any = undefined
-  const finalEnv: Record<string, string> = {}
+  const finalEnv: Record<string, string> = {path: process.env.PATH as string}
+  let finalEnvAssembled = false
 
-  async function setup() {
-    if (pullImages) {
-      await pullImagesFromComposeFile(pathToCompose, servicesToStart)
+  async function assembleFinalEnv() {
+    if (!finalEnvAssembled) {
+      // Keep the pointer to finalEnv to not break the bind for runService
+      Object.entries(await replaceFunctionsWithTheirValues(env)).forEach(([k, v]) => {
+        finalEnv[k] = v
+      })
     }
 
+    finalEnvAssembled = true
+  }
+
+  async function pullImages() {
+    await assembleFinalEnv()
+
+    return pullImagesFromComposeFile({
+      pathToCompose,
+      servicesToStart,
+      env: finalEnv,
+    })
+  }
+
+  async function setup() {
     if (orphanCleanup) {
       await cleanupOrphanEnvironments(containerRetentionInMinutes)
     }
@@ -99,20 +118,28 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     const consoleMessage = `starting up runtime environment for this run (codenamed: ${displayName})${onlyTheseServicesMessage}... `
     log(consoleMessage)
 
-    // Keep the pointer to finalEnv to not break the bind for runService
-    Object.entries(await replaceFunctionsWithTheirValues(env)).forEach(([k, v]) => {
-      finalEnv[k] = v
-    })
+    await assembleFinalEnv()
+
+    if (pullImagesConfig) {
+      await pullImagesFromComposeFile({
+        pathToCompose,
+        servicesToStart,
+        env: finalEnv,
+      })
+    }
 
     try {
       await execa(
         'docker',
         ['compose', '-p', project, '-f', pathToCompose, 'up', '-d', ...servicesToStart],
-        {env: {path: process.env.PATH, ...finalEnv}},
+        {env: finalEnv},
       )
     } catch (err) {
       const error = err as any
-      if (error.stderr !== 'no service selected') {
+      if (
+        !error.stderr.includes('no service selected') &&
+        !error.stderr.includes('empty compose file')
+      ) {
         throw error
       }
       log(error.stderr)
@@ -142,6 +169,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
   return {
     projectName: project,
     pathToCompose,
+    pullImages,
     setup,
     teardown,
     getAddressForService: getAddressForService.bind(undefined, project, pathToCompose),
@@ -174,9 +202,12 @@ async function replaceFunctionsWithTheirValues(env: Env): Promise<Record<string,
         }
       }),
     )
-  ).reduce((finalEnv, [key, value]) => {
-    finalEnv[key] = value
+  ).reduce(
+    (finalEnv, [key, value]) => {
+      finalEnv[key] = value
 
-    return finalEnv
-  }, {} as Record<string, string>)
+      return finalEnv
+    },
+    {} as Record<string, string>,
+  )
 }

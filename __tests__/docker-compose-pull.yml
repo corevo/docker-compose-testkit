@@ -1,0 +1,5 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:${NGINX_VERSION}
+

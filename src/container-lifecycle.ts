@@ -9,9 +9,19 @@ export async function composeDown(
   pathToCompose: string,
   {env = {}}: {env?: Record<string, string>},
 ) {
-  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'down'], {
-    env: {path: process.env.PATH, ...env},
-  })
+  try {
+    await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'down'], {
+      env: {path: process.env.PATH, ...env},
+    })
+  } catch (err) {
+    const error = err as any
+    if (
+      !error.stderr.includes('no service selected') &&
+      !error.stderr.includes('empty compose file')
+    ) {
+      throw error
+    }
+  }
 }
 
 export async function composeKill(
@@ -19,9 +29,39 @@ export async function composeKill(
   pathToCompose: string,
   {env = {}}: {env?: Record<string, string>},
 ) {
-  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'kill'], {
-    env: {path: process.env.PATH, ...env},
-  })
+  try {
+    await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'kill'], {
+      env: {path: process.env.PATH, ...env},
+    })
+  } catch (err) {
+    const error = err as any
+    if (
+      !error.stderr.includes('no service selected') &&
+      !error.stderr.includes('empty compose file')
+    ) {
+      throw error
+    }
+  }
+}
+
+export async function cleanupVolumes(
+  projectName: string,
+  pathToCompose: string,
+  {env = {}}: {env?: Record<string, string>},
+) {
+  try {
+    await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'down', '-v'], {
+      env: {path: process.env.PATH, ...env},
+    })
+  } catch (err) {
+    const error = err as any
+    if (
+      !error.stderr.includes('no service selected') &&
+      !error.stderr.includes('empty compose file')
+    ) {
+      throw error
+    }
+  }
 }
 
 export async function startService(

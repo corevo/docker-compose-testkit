@@ -4,7 +4,7 @@ import {
   extractContainerIdFromName,
   extractProjectNameFromContainer,
 } from './project-name.js'
-import {composeDown, composeKill} from './container-lifecycle.js'
+import {cleanupVolumes, composeDown, composeKill} from './container-lifecycle.js'
 import debug, {Debugger} from './debug.js'
 const log = debug('docker-compose-testkit:debug')
 
@@ -20,7 +20,7 @@ function getStaleContainers(
   return stdout
     .split('\n')
     .filter((o) => o.length > 0 && o.indexOf('testkit__') !== -1)
-    .map((o) => o.substr(1, o.length - 2))
+    .map((o) => o.substring(1, o.length - 2))
     .filter((o) => {
       log(`inspecting container named: ${o} for cleanup`)
       const decision =
@@ -67,9 +67,7 @@ export async function cleanupContainersByEnvironmentName(
   const consoleMessageDispose = `Disposing of ${displayName} environment.. `
   log(consoleMessageDispose)
 
-  await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'down', '-v'], {
-    env: {path: process.env.PATH, ...env},
-  })
+  await cleanupVolumes(projectName, pathToCompose, {env})
 }
 
 export async function cleanupOrphanEnvironments(containerRetentionInMinutesParam: number) {
