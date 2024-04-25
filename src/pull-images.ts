@@ -14,6 +14,9 @@ export async function pullImagesFromComposeFile({
     .stdout
   const {services} = yaml.load(composeFileContent) as any
 
+  if (!services)
+    return []
+
   const images = Array.from(
     new Set(
       Object.keys(services)

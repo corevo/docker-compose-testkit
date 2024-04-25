@@ -15,4 +15,14 @@ describe('docker-compose-testkit', () => {
 
     expect(await compose.pullImages()).toEqual(['nginx:latest'])
   })
+
+  it('should work with empty compose file', async () => {
+    const pathToCompose = path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      'docker-compose-empty.yml',
+    )
+    const compose = dockerCompose(pathToCompose)
+
+    expect(await compose.pullImages()).toEqual([])
+  })
 })
