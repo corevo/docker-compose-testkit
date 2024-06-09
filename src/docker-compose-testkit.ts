@@ -15,6 +15,7 @@ import {
   pauseService,
   unpauseService,
   runService,
+  execInService,
   waitForServiceToExit,
   ExitOptions,
 } from './container-lifecycle.js'
@@ -53,6 +54,10 @@ export interface Compose {
   getLogsForService: (serviceName: string) => Promise<string>
   waitForServiceToExit: (serviceName: string, options?: ExitOptions) => Promise<void>
   runService: (serviceName: string, commandWithArgs: string[]) => Promise<ExecaReturnValue<string>>
+  execInService: (
+    serviceName: string,
+    commandWithArgs: string[],
+  ) => Promise<ExecaReturnValue<string>>
   startService: (serviceName: string) => Promise<void>
   stopService: (serviceName: string) => Promise<void>
   pauseService: (serviceName: string) => Promise<void>
@@ -179,6 +184,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     getLogsForService: getLogsForService.bind(undefined, project, pathToCompose),
     waitForServiceToExit: waitForServiceToExit.bind(undefined, project, pathToCompose),
     runService: runService.bind(undefined, project, pathToCompose, finalEnv),
+    execInService: execInService.bind(undefined, project, pathToCompose, finalEnv),
     startService: startService.bind(undefined, project, pathToCompose),
     stopService: stopService.bind(undefined, project, pathToCompose),
     pauseService: pauseService.bind(undefined, project, pathToCompose),

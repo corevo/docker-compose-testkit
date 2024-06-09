@@ -52,6 +52,36 @@ describe('docker-compose-lifecycle', () => {
     })
   })
 
+  describe('execInService', () => {
+    const pathToCompose = path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      'docker-compose.yml',
+    )
+    const compose = dockerCompose(pathToCompose, {
+      forceKill: true,
+    })
+
+    beforeAll(compose.setup)
+    afterAll(compose.teardown)
+
+    it('should exec a command in a service', async () => {
+      const pwdResult = await compose.execInService('nginx', ['pwd'])
+      expect(pwdResult.stdout).toEqual('/')
+      const lsResult = await compose.execInService('nginx', ['ls'])
+      expect(lsResult.stdout).toMatch(new RegExp(`^bin\nboot\ndev\ndocker-entrypoint\.d.*`, 'g'))
+    })
+
+    it('should exec a failing command in a service', async () => {
+      try {
+        await compose.execInService('nginx', ['cat', 'blabla'])
+      } catch (err) {
+        const error = err as any
+        expect(error.exitCode).toBe(1)
+        expect(error.stderr).toEqual('cat: blabla: No such file or directory')
+      }
+    })
+  })
+
   describe('waitForServiceToExit', () => {
     it('should wait until the service exits', async () => {
       const pathToCompose = path.join(

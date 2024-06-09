@@ -106,6 +106,20 @@ export async function runService(
   )
 }
 
+export async function execInService(
+  projectName: string,
+  pathToCompose: string,
+  env: Record<string, string>,
+  serviceName: string,
+  commandWithArgs: string[],
+) {
+  return await execa(
+    'docker',
+    ['compose', '-p', projectName, '-f', pathToCompose, 'exec', serviceName, ...commandWithArgs],
+    {env: {PATH: process.env.PATH, ...env}},
+  )
+}
+
 export interface ExitOptions {
   anyExitCode?: boolean
   timeout?: number
