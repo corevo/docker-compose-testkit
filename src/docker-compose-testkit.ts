@@ -1,4 +1,4 @@
-import {execa, ExecaReturnValue} from 'execa'
+import {execa, Result as ExecaResult} from 'execa'
 import {cleanupContainersByEnvironmentName, cleanupOrphanEnvironments} from './cleanup.js'
 import {getProjectName} from './project-name.js'
 import {pullImagesFromComposeFile} from './pull-images.js'
@@ -24,6 +24,8 @@ import debug from './debug.js'
 type EnvFunc = () => string | number
 type EnvAsyncFunc = () => Promise<string | number>
 type Env = Record<string, string | Promise<string> | EnvFunc | EnvAsyncFunc>
+
+type ExecaCommandResult = ExecaResult<{all: false; stdio: 'pipe'}>
 
 export interface ComposeOptions {
   servicesToStart?: string[]
@@ -53,11 +55,8 @@ export interface Compose {
   containerExists: (serviceName: string) => Promise<boolean>
   getLogsForService: (serviceName: string) => Promise<string>
   waitForServiceToExit: (serviceName: string, options?: ExitOptions) => Promise<void>
-  runService: (serviceName: string, commandWithArgs: string[]) => Promise<ExecaReturnValue<string>>
-  execInService: (
-    serviceName: string,
-    commandWithArgs: string[],
-  ) => Promise<ExecaReturnValue<string>>
+  runService: (serviceName: string, commandWithArgs: string[]) => Promise<ExecaCommandResult>
+  execInService: (serviceName: string, commandWithArgs: string[]) => Promise<ExecaCommandResult>
   startService: (serviceName: string) => Promise<void>
   stopService: (serviceName: string) => Promise<void>
   pauseService: (serviceName: string) => Promise<void>

@@ -24,6 +24,12 @@ export function tailLogsForServices(
     {all: true},
   )
 
+  child.catch((error) => {
+    if ((error as any).signal !== 'SIGKILL') {
+      throw error
+    }
+  })
+
   if (child.all) {
     child.all.pipe(stream)
   }
