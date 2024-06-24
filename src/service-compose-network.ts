@@ -99,7 +99,9 @@ export type ServiceAddresses<T extends ServiceComposeDefinition[]> = {
   [K in T[number] as ToServiceKey<K>]: string
 }
 
-export async function getAddresses<const ServiceDefinitions extends ServiceComposeDefinition[]>(
+export async function getAddressesForServices<
+  const ServiceDefinitions extends ServiceComposeDefinition[],
+>(
   projectName: string,
   pathToCompose: string,
   defaultPort: number,

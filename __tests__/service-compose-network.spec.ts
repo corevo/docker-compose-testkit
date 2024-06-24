@@ -70,7 +70,7 @@ describe('service-compose-network', () => {
     })
 
     it('should get multiple services', async () => {
-      const serviceAddresses = await compose.getAddresses('nginx', [
+      const serviceAddresses = await compose.getAddressesForServices('nginx', [
         'netcat',
         80,
         {tcpCheckOnly: true, maxRetries: 1},
@@ -80,7 +80,7 @@ describe('service-compose-network', () => {
     })
 
     it('should be able to handle custom attributes for each definition', async () => {
-      const serviceAddresses = await compose.getAddresses(
+      const serviceAddresses = await compose.getAddressesForServices(
         ['nginx', 80, {healthCheck: '/404'}],
         ['netcat', 80, {tcpCheckOnly: true, maxRetries: 1}],
       )

@@ -3,7 +3,7 @@ import {cleanupContainersByEnvironmentName, cleanupOrphanEnvironments} from './c
 import {getProjectName} from './project-name.js'
 import {pullImagesFromComposeFile} from './pull-images.js'
 import {
-  getAddresses,
+  getAddressesForServices,
   getAddressForService,
   GetAddressForServiceParams,
   getInternalIpForService,
@@ -40,7 +40,7 @@ export interface ComposeOptions {
   pullImages?: boolean
   forceKill?: boolean
   containerRetentionInMinutes?: number
-  defaultPort?: number
+  defaultServicePort?: number
 }
 
 export interface Compose {
@@ -50,7 +50,7 @@ export interface Compose {
   setup: () => Promise<void>
   teardown: () => Promise<void>
   getAddressForService: (...options: GetAddressForServiceParams) => Promise<string>
-  getAddresses: <const ServiceDefinitions extends ServiceComposeDefinition[]>(
+  getAddressesForServices: <const ServiceDefinitions extends ServiceComposeDefinition[]>(
     ...options: ServiceDefinitions
   ) => Promise<ServiceAddresses<ServiceDefinitions>>
   getInternalIpForService: (serviceName: string) => Promise<string>
@@ -77,7 +77,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     pullImages: pullImagesConfig,
     forceKill,
     containerRetentionInMinutes,
-    defaultPort,
+    defaultServicePort,
   } = {
     servicesToStart: [],
     env: {},
@@ -86,7 +86,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     pullImages: false,
     forceKill: true,
     containerRetentionInMinutes: 5,
-    defaultPort: 80,
+    defaultServicePort: 80,
     ...options,
   }
   const {project, displayName} = getProjectName(projectName)
@@ -181,7 +181,12 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     setup,
     teardown,
     getAddressForService: getAddressForService.bind(undefined, project, pathToCompose),
-    getAddresses: getAddresses.bind(undefined, project, pathToCompose, defaultPort),
+    getAddressesForServices: getAddressesForServices.bind(
+      undefined,
+      project,
+      pathToCompose,
+      defaultServicePort,
+    ),
     getInternalIpForService: getInternalIpForService.bind(undefined, project, pathToCompose),
     listContainers: listContainers.bind(undefined, project, pathToCompose),
     containerExists: containerExists.bind(undefined, project, pathToCompose),
