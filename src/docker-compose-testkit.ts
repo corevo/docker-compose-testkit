@@ -3,9 +3,12 @@ import {cleanupContainersByEnvironmentName, cleanupOrphanEnvironments} from './c
 import {getProjectName} from './project-name.js'
 import {pullImagesFromComposeFile} from './pull-images.js'
 import {
-  AddressOptions,
+  getAddresses,
   getAddressForService,
+  GetAddressForServiceParams,
   getInternalIpForService,
+  ServiceComposeDefinition,
+  ServiceAddresses,
 } from './service-compose-network.js'
 import {listContainers, containerExists, Container} from './list-containers.js'
 import {getLogsForService, tailLogsForServices} from './container-logs.js'
@@ -37,6 +40,7 @@ export interface ComposeOptions {
   pullImages?: boolean
   forceKill?: boolean
   containerRetentionInMinutes?: number
+  defaultPort?: number
 }
 
 export interface Compose {
@@ -45,11 +49,10 @@ export interface Compose {
   pullImages: () => Promise<string[]>
   setup: () => Promise<void>
   teardown: () => Promise<void>
-  getAddressForService: (
-    serviceName: string,
-    exposedPort: number,
-    options?: AddressOptions,
-  ) => Promise<string>
+  getAddressForService: (...options: GetAddressForServiceParams) => Promise<string>
+  getAddresses: <const ServiceDefinitions extends ServiceComposeDefinition[]>(
+    ...options: ServiceDefinitions
+  ) => Promise<ServiceAddresses<ServiceDefinitions>>
   getInternalIpForService: (serviceName: string) => Promise<string>
   listContainers: () => Promise<Container[]>
   containerExists: (serviceName: string) => Promise<boolean>
@@ -74,6 +77,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     pullImages: pullImagesConfig,
     forceKill,
     containerRetentionInMinutes,
+    defaultPort,
   } = {
     servicesToStart: [],
     env: {},
@@ -82,6 +86,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     pullImages: false,
     forceKill: true,
     containerRetentionInMinutes: 5,
+    defaultPort: 80,
     ...options,
   }
   const {project, displayName} = getProjectName(projectName)
@@ -169,7 +174,6 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
       })
     }
   }
-
   return {
     projectName: project,
     pathToCompose,
@@ -177,6 +181,7 @@ export function compose(pathToCompose: string, options?: ComposeOptions): Compos
     setup,
     teardown,
     getAddressForService: getAddressForService.bind(undefined, project, pathToCompose),
+    getAddresses: getAddresses.bind(undefined, project, pathToCompose, defaultPort),
     getInternalIpForService: getInternalIpForService.bind(undefined, project, pathToCompose),
     listContainers: listContainers.bind(undefined, project, pathToCompose),
     containerExists: containerExists.bind(undefined, project, pathToCompose),
