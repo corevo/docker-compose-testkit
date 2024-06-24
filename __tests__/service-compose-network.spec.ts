@@ -63,4 +63,29 @@ describe('service-compose-network', () => {
     const nginxAddress = await compose.getInternalIpForService('nginx')
     expect(nginxAddress).toMatch(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)
   })
+
+  describe('getAddresses', () => {
+    beforeEach(async () => {
+      await compose.startService('netcat')
+    })
+
+    it('should get multiple services', async () => {
+      const serviceAddresses = await compose.getAddresses('nginx', [
+        'netcat',
+        80,
+        {tcpCheckOnly: true, maxRetries: 1},
+      ])
+      expect(serviceAddresses.nginx).toMatch(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$/)
+      expect(serviceAddresses.netcat).toMatch(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$/)
+    })
+
+    it('should be able to handle custom attributes for each definition', async () => {
+      const serviceAddresses = await compose.getAddresses(
+        ['nginx', 80, {healthCheck: '/404'}],
+        ['netcat', 80, {tcpCheckOnly: true, maxRetries: 1}],
+      )
+      expect(serviceAddresses.nginx).toMatch(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$/)
+      expect(serviceAddresses.netcat).toMatch(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$/)
+    })
+  })
 })

@@ -8,6 +8,12 @@ export function clearServiceAddressCache() {
   serviceAddressCache.clear()
 }
 
+export type GetAddressForServiceParams = [
+  serviceName: string,
+  exposedPort: number,
+  options?: AddressOptions,
+]
+
 export interface AddressOptions {
   healthCheck?: HealthCheck
   tcpCheckOnly?: boolean
@@ -18,14 +24,16 @@ export interface AddressOptions {
 export async function getAddressForService(
   projectName: string,
   pathToCompose: string,
-  serviceName: string,
-  exposedPort: number,
-  {
-    healthCheck = undefined,
-    tcpCheckOnly = false,
-    fiveHundedStatusIsOk = false,
-    maxRetries = 10,
-  }: AddressOptions = {},
+  ...[
+    serviceName,
+    exposedPort,
+    {
+      healthCheck = undefined,
+      tcpCheckOnly = false,
+      fiveHundedStatusIsOk = false,
+      maxRetries = 10,
+    } = {},
+  ]: GetAddressForServiceParams
 ) {
   const serviceAddressKey = JSON.stringify({projectName, pathToCompose, serviceName, exposedPort})
   const possibleAddress = serviceAddressCache.get(serviceAddressKey)
@@ -83,4 +91,32 @@ export async function getInternalIpForService(
     '-i',
   ])
   return stdout.replace('\n', '')
+}
+
+export type ServiceComposeDefinition = string | [serviceName: string] | GetAddressForServiceParams
+type ToServiceKey<T extends ServiceComposeDefinition> = T extends string ? T : T[0]
+export type ServiceAddresses<T extends ServiceComposeDefinition[]> = {
+  [K in T[number] as ToServiceKey<K>]: string
+}
+
+export async function getAddresses<const ServiceDefinitions extends ServiceComposeDefinition[]>(
+  projectName: string,
+  pathToCompose: string,
+  defaultPort: number,
+  ...services: ServiceDefinitions
+): Promise<ServiceAddresses<ServiceDefinitions>> {
+  const addresses = {} as any
+
+  await Promise.all(
+    services.map(async (def) => {
+      const options =
+        typeof def === 'string'
+          ? ([def, defaultPort] as GetAddressForServiceParams)
+          : def.length === 1
+            ? ([def[0], defaultPort] as GetAddressForServiceParams)
+            : def
+      addresses[options[0]] = await getAddressForService(projectName, pathToCompose, ...options)
+    }),
+  )
+  return addresses
 }
