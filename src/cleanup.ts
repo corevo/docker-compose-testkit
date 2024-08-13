@@ -5,7 +5,7 @@ import {
   extractProjectNameFromContainer,
 } from './project-name.js'
 import {cleanupVolumes, composeDown, composeKill} from './container-lifecycle.js'
-import debug, {Debugger} from './debug.js'
+import debug, {err, Debugger} from './debug.js'
 const log = debug('docker-compose-testkit:debug')
 
 function getUnixTimestampNow() {
@@ -132,13 +132,37 @@ export async function killNetworkByProjectName(projectName: string) {
 }
 
 export async function removeStaleVolumes() {
-  log("Removing volumes which we don't need..")
+  log('Removing old unused volumes...')
   try {
-    // http://stackoverflow.com/questions/17402345/ignore-empty-results-for-xargs-in-mac-os-x
-    await execa('(docker volume ls -q || echo :)', ['|', 'xargs', 'docker', 'volume', 'rm'], {
-      shell: true,
-    })
-  } catch (err) {
-    log("No volumes require removal.. we're good to go")
+    const volumeNamesCmd = await execa('docker volume ls -q', {shell: true})
+    const volumeNames = volumeNamesCmd.stdout.split('\n')
+    if (volumeNames.length === 0) {
+      log('No volumes to remove')
+      return
+    }
+    const volumesInspectCmd = await execa(
+      `docker inspect --type volume --format "{{json .}}" ${volumeNames.join(' ')}`,
+      {shell: true},
+    )
+    const volumesInspect = volumesInspectCmd.stdout.split('\n')
+    const lastMonth = new Date().getTime() - 1000 * 60 * 60 * 24 * 30
+    const volumesToDelete = []
+    for (const inspectStdout of volumesInspect) {
+      const volumeJson = JSON.parse(inspectStdout)
+      if (new Date(volumeJson.CreatedAt).getTime() < lastMonth) {
+        volumesToDelete.push(volumeJson.Name)
+      }
+    }
+    if (volumesToDelete.length > 0) {
+      log(`Removing volumes: [${volumesToDelete.join(' ')}]`)
+      await execa(`docker volume rm ${volumesToDelete.join(' ')}`, {shell: true})
+    } else {
+      log('No volumes to remove')
+    }
+  } catch (error: any) {
+    if (error?.stderr?.includes('volume is in use')) {
+      return
+    }
+    err('Remove volumes unexpected err:', error)
   }
 }
