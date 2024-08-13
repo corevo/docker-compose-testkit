@@ -23,6 +23,7 @@ import {
   ExitOptions,
 } from './container-lifecycle.js'
 import debug from './debug.js'
+import {existsSync} from 'node:fs'
 
 type EnvFunc = () => string | number
 type EnvAsyncFunc = () => Promise<string | number>
@@ -67,6 +68,9 @@ export interface Compose {
 }
 
 export function compose(pathToCompose: string, options?: ComposeOptions): Compose {
+  if (!existsSync(pathToCompose)) {
+    throw new Error(`docker-compose file not found at ${pathToCompose}`)
+  }
   const {
     servicesToStart,
     tailServices,
