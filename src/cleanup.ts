@@ -1,4 +1,4 @@
-import {execa} from 'execa'
+import {execa, execaCommand} from 'execa'
 import {
   extractTimestampFromName,
   extractContainerIdFromName,
@@ -135,9 +135,12 @@ export async function removeStaleVolumes() {
   log("Removing volumes which we don't need..")
   try {
     // http://stackoverflow.com/questions/17402345/ignore-empty-results-for-xargs-in-mac-os-x
-    await execa('(docker volume ls -q || echo :)', ['|', 'xargs', 'docker', 'volume', 'rm'], {
-      shell: true,
-    })
+    await execaCommand(
+      '(docker volume ls -q || echo :) | grep testkit__ | xargs docker volume rm',
+      {
+        shell: true,
+      },
+    )
   } catch (err) {
     log("No volumes require removal.. we're good to go")
   }

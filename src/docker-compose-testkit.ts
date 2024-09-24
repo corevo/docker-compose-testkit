@@ -1,3 +1,4 @@
+import {existsSync} from 'node:fs'
 import {execa, Result as ExecaResult} from 'execa'
 import {cleanupContainersByEnvironmentName, cleanupOrphanEnvironments} from './cleanup.js'
 import {getProjectName} from './project-name.js'
@@ -67,6 +68,10 @@ export interface Compose {
 }
 
 export function compose(pathToCompose: string, options?: ComposeOptions): Compose {
+  if (!existsSync(pathToCompose)) {
+    throw new Error(`docker-compose file not found at ${pathToCompose}`)
+  }
+
   const {
     servicesToStart,
     tailServices,

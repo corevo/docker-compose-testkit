@@ -1,6 +1,6 @@
 {
   "name": "docker-compose-testkit",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "type": "module",
   "exports": "./build/docker-compose-testkit.js",
   "types": "build/docker-compose-testkit.d.ts",
@@ -37,7 +37,7 @@
     "@types/debug": "^4.1.7",
     "@types/js-yaml": "^4.0.5",
     "@types/lodash.capitalize": "^4.2.6",
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.1.0",
