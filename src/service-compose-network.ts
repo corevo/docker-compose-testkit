@@ -21,6 +21,36 @@ export interface AddressOptions {
   maxRetries?: number
 }
 
+type ServiceAddressKeyOptions = {
+  projectName: string
+  pathToCompose: string
+  serviceName: string
+  exposedPort?: number
+}
+
+function getServiceAddressKey(opts: ServiceAddressKeyOptions) {
+  const {projectName, pathToCompose, serviceName, exposedPort} = opts
+  return JSON.stringify({projectName, pathToCompose, serviceName}) + typeof exposedPort === 'number'
+    ? `:${exposedPort}`
+    : ''
+}
+
+/**
+ * removes service address from the cache, either by exact port or all known ports
+ * @returns how many addresses were removed
+ */
+export function removeServiceAddressFromCache(opts: ServiceAddressKeyOptions) {
+  const key = getServiceAddressKey(opts)
+  if (typeof opts.exposedPort === 'number') {
+    return serviceAddressCache.delete(key) === true ? 1 : 0
+  } else {
+    const keysToDelete = Array.from(serviceAddressCache.keys()).filter((k) => k.startsWith(key))
+    serviceAddressCache.delete
+    keysToDelete.forEach(serviceAddressCache.delete)
+    return keysToDelete.length
+  }
+}
+
 export async function getAddressForService(
   projectName: string,
   pathToCompose: string,
@@ -35,7 +65,12 @@ export async function getAddressForService(
     } = {},
   ]: GetAddressForServiceParams
 ) {
-  const serviceAddressKey = JSON.stringify({projectName, pathToCompose, serviceName, exposedPort})
+  const serviceAddressKey = getServiceAddressKey({
+    projectName,
+    pathToCompose,
+    serviceName,
+    exposedPort,
+  })
   const possibleAddress = serviceAddressCache.get(serviceAddressKey)
   if (possibleAddress) {
     return possibleAddress
