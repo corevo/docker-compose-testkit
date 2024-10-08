@@ -30,9 +30,9 @@ type ServiceAddressKeyOptions = {
 
 function getServiceAddressKey(opts: ServiceAddressKeyOptions) {
   const {projectName, pathToCompose, serviceName, exposedPort} = opts
-  return JSON.stringify({projectName, pathToCompose, serviceName}) + typeof exposedPort === 'number'
-    ? `:${exposedPort}`
-    : ''
+  const baseKey = JSON.stringify({projectName, pathToCompose, serviceName})
+  const portSuffix = typeof exposedPort === 'number' ? `:${exposedPort}` : ''
+  return `${baseKey}${portSuffix}`
 }
 
 /**
@@ -45,8 +45,7 @@ export function removeServiceAddressFromCache(opts: ServiceAddressKeyOptions) {
     return serviceAddressCache.delete(key) === true ? 1 : 0
   } else {
     const keysToDelete = Array.from(serviceAddressCache.keys()).filter((k) => k.startsWith(key))
-    serviceAddressCache.delete
-    keysToDelete.forEach(serviceAddressCache.delete)
+    keysToDelete.forEach((k) => serviceAddressCache.delete(k))
     return keysToDelete.length
   }
 }
