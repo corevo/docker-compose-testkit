@@ -2,6 +2,7 @@ import retry, {AbortError} from 'p-retry'
 import {execa} from 'execa'
 import {listContainers} from './list-containers.js'
 import {getLogsForService} from './container-logs.js'
+import {removeServiceAddressFromCache} from './service-compose-network.js'
 import {log} from './debug.js'
 
 export async function composeDown(
@@ -73,6 +74,7 @@ export async function startService(
 }
 
 export async function stopService(projectName: string, pathToCompose: string, serviceName: string) {
+  removeServiceAddressFromCache({projectName, pathToCompose, serviceName})
   await execa('docker', ['compose', '-p', projectName, '-f', pathToCompose, 'stop', serviceName])
 }
 

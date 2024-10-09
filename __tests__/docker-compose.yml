@@ -10,4 +10,4 @@ services:
     image: busybox:latest
     ports:
       - 80
-    command: nc -lkp 80
+    command: nc -v -lkp 80

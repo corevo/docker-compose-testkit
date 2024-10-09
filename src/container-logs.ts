@@ -35,6 +35,7 @@ export function tailLogsForServices(
   }
 
   return async () => {
+    if (child.killed || child.exitCode !== null) return
     child.kill(9)
     await retry(() => {
       if (!child.killed) {
